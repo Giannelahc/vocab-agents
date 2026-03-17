@@ -1,0 +1,26 @@
+from sqlalchemy import (
+    Column, Integer, ForeignKey
+)
+from sqlalchemy.orm import relationship
+from database import Base
+
+class UserLearningLanguage(Base):
+    __tablename__ = "user_learning_languages"
+    id = Column(Integer, primary_key=True)
+
+    preference_id = Column(
+        Integer,
+        ForeignKey("user_preferences.id")
+    )
+
+    language_id = Column(
+        Integer,
+        ForeignKey("languages.id")
+    )
+
+    preference = relationship(
+        "UserPreference",
+        back_populates="learning_languages"
+    )
+
+    language = relationship("Language")
