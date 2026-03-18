@@ -6,8 +6,8 @@ from entities.user_learning_language import UserLearningLanguage
 from entities.user_preferences import UserPreference
 from agents import definition_agent
 from database import SessionLocal, init_db
-from configs import llm_config
-from services import user_preference
+from configs import llm_config, serapi_config
+from services import user_preference, dictionary_service
 
 def vocabulary_agent(word):
     # 1️⃣ Guardar palabra
@@ -41,7 +41,8 @@ def vocabulary_agent(word):
 
         session.commit() """
 
-##
+        ##
+        '''
         spanish = Language(name="Spanish", code="es")
         french = Language(name="French", code="fr")
         english = Language(name="English", code="en")
@@ -69,11 +70,29 @@ def vocabulary_agent(word):
 
         # 5️⃣ Guardar todo
         session.add(pref)
-        session.commit()
+        session.commit()'''
 
-        agent = definition_agent.DefinitionAgent(llm_client=llm_config.get_llm_response, 
-                                                 user_pref_service= user_preference.UserPreferenceService(db_session=session))
-        result = agent.run(user_id=1, word=word)
+        user_pref = user_preference.UserPreferenceService(db_session=session)
+
+        pref = user_pref.get_user_preferences(user_id=1)
+
+        target_languages = [
+            lang.language.name for lang in pref.learning_languages
+        ]
+
+        if pref.native_language.name not in target_languages:
+            target_languages.append(pref.native_language.name)
+
+        agent = definition_agent.DefinitionAgent(dictionary_service.DictionaryService(
+            llm_config.get_llm_response, serapi_config.get_serapi_conf))
+        
+        result = {}
+
+        for target in target_languages:
+            result[target] = {
+                "definition": agent.run(word=word, target_language=target)
+            }
+
         print(result)
         print(f"Palabra '{word}' procesada y guardada en DB")
 
