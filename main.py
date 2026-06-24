@@ -4,12 +4,12 @@ from entities.language import Language
 from entities.user import User
 from entities.user_learning_language import UserLearningLanguage
 from entities.user_preferences import UserPreference
-from agents import definition_agent
+from agents import definition_agent, supervisor_agent, grammar_agent
 from database import SessionLocal, init_db
 from configs import llm_config, serapi_config
-from services import user_preference, dictionary_service
+from services import user_preference, dictionary_service, pos_tagger
 
-def vocabulary_agent(word):
+def vocabulary_agent(word, language):
     # 1️⃣ Guardar palabra
     with SessionLocal() as session:
 
@@ -74,24 +74,18 @@ def vocabulary_agent(word):
 
         user_pref = user_preference.UserPreferenceService(db_session=session)
 
-        pref = user_pref.get_user_preferences(user_id=1)
-
-        target_languages = [
-            lang.language.name for lang in pref.learning_languages
-        ]
-
-        if pref.native_language.name not in target_languages:
-            target_languages.append(pref.native_language.name)
+        tagger = pos_tagger.PosTaggerService(llm_config.get_llm_response)
 
         agent = definition_agent.DefinitionAgent(dictionary_service.DictionaryService(
             llm_config.get_llm_response, serapi_config.get_serapi_conf))
         
-        result = {}
+        grammar_ag = grammar_agent.GrammarAgent(llm_config.get_llm_response)
+        
 
-        for target in target_languages:
-            result[target] = {
-                "definition": agent.run(word=word, target_language=target)
-            }
+        sup_agent = supervisor_agent.SupervisorAgent(
+            user_pref, tagger, agent, grammar_ag)
+
+        result = sup_agent.run(word, user_id=1, language_detected = language)
 
         print(result)
         print(f"Palabra '{word}' procesada y guardada en DB")
@@ -99,4 +93,4 @@ def vocabulary_agent(word):
 
 if __name__ == "__main__":
     init_db()
-    vocabulary_agent("craindre")
+    vocabulary_agent("crever les yeux", "French")
