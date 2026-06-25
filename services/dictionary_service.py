@@ -6,9 +6,9 @@ class DictionaryService:
         self.serapi = serapi
 
     def get_definition(self, word: str, tag: str, target_languages, language_detected: str):
-        return self.get_from_serapi_search(word, tag, target_languages, language_detected)
+        return self.get_definition_from_serapi_search(word, tag, target_languages, language_detected)
     
-    def get_from_serapi_search(self, word: str, tag: str, target_languages, language_detected: str):
+    def get_definition_from_serapi_search(self, word: str, tag: str, target_languages, language_detected: str):
         query = f'{word} meaning '
         try:
             definitions = self.serapi(query)

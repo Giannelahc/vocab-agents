@@ -4,10 +4,10 @@ from entities.language import Language
 from entities.user import User
 from entities.user_learning_language import UserLearningLanguage
 from entities.user_preferences import UserPreference
-from agents import definition_agent, supervisor_agent, grammar_agent
+from agents import definition_agent, supervisor_agent, grammar_agent, example_agent
 from database import SessionLocal, init_db
 from configs import llm_config, serapi_config
-from services import user_preference, dictionary_service, pos_tagger
+from services import user_preference, dictionary_service, pos_tagger, example_service
 
 def vocabulary_agent(word, language):
     # 1️⃣ Guardar palabra
@@ -76,14 +76,16 @@ def vocabulary_agent(word, language):
 
         tagger = pos_tagger.PosTaggerService(llm_config.get_llm_response)
 
-        agent = definition_agent.DefinitionAgent(dictionary_service.DictionaryService(
+        def_agent = definition_agent.DefinitionAgent(dictionary_service.DictionaryService(
             llm_config.get_llm_response, serapi_config.get_serapi_conf))
+        
+        ex_agent = example_agent.ExampleAgent(example_service.ExampleService(llm_config.get_llm_response, serapi_config.get_serapi_conf))
         
         grammar_ag = grammar_agent.GrammarAgent(llm_config.get_llm_response)
         
 
         sup_agent = supervisor_agent.SupervisorAgent(
-            user_pref, tagger, agent, grammar_ag)
+            user_pref, tagger, def_agent, grammar_ag, ex_agent)
 
         result = sup_agent.run(word, user_id=1, language_detected = language)
 
@@ -93,4 +95,4 @@ def vocabulary_agent(word, language):
 
 if __name__ == "__main__":
     init_db()
-    vocabulary_agent("crever les yeux", "French")
+    vocabulary_agent("songer à", "French")

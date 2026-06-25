@@ -1,15 +1,17 @@
 from services import pos_tagger, user_preference
-from agents import definition_agent, grammar_agent
+from agents import definition_agent, grammar_agent, example_agent
 
 class SupervisorAgent:
     def __init__(self, user_preference_service: user_preference.UserPreferenceService, 
                  pos_tagger: pos_tagger.PosTaggerService, 
                  definition_agent: definition_agent.DefinitionAgent,
-                 grammar_agent: grammar_agent.GrammarAgent):
+                 grammar_agent: grammar_agent.GrammarAgent,
+                 example_agent: example_agent.ExampleAgent):
         self.preference_service = user_preference_service
         self.pos_tagger_service = pos_tagger
         self.definition_agent = definition_agent
         self.grammar_agent = grammar_agent
+        self.example_agent = example_agent
 
     def run(self, word, user_id, language_detected):
         target_languages = self.get_target_languages(user_id)
@@ -24,15 +26,6 @@ class SupervisorAgent:
             result[language_detected] = self.execute_tasks(tasks=tasks, word=word, tag=type, target_languages=target_languages, 
                                                            result=result[language_detected], language_detected=language_detected)
 
-        """ for target in target_languages:
-            if target not in result:
-                result[target] = {}
-
-            for type in types:
-                print(type)
-                tasks = self.decide_tasks(type)
-                result[target] = self.execute_tasks(tasks, word, type, target, result[target], language_detected) """
-
         return result
 
 
@@ -43,6 +36,8 @@ class SupervisorAgent:
             result[tag]["gender"] = self.grammar_agent.get_gender(word, language_detected)
         if "conjugation" in tasks:
             result[tag]["conjugation"] = self.grammar_agent.get_conjugation(word, language_detected)
+        if "examples" in tasks:
+            result[tag]["examples"] = self.example_agent.run(word, tag, language_detected)
         
         return result
 
