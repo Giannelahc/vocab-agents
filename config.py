@@ -1,9 +1,16 @@
 # config.py
-from dotenv import load_dotenv
-import os
+from pydantic_settings import BaseSettings
 
-load_dotenv() 
+class Settings(BaseSettings):
+    DATABASE_URL: str
+    OPENAI_API_KEY: str
+    SERP_API_KEY:   str
+    SECRET_KEY:     str
+    ALGORITHM:      str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-SERP_API_KEY = os.getenv("SERP_API_KEY")
-DATABASE_URL = os.getenv("DATABASE_URL")
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+
+settings = Settings()

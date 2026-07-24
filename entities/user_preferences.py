@@ -12,7 +12,7 @@ class UserPreference(Base):
         Integer,
         ForeignKey("languages.id")
     )
-    user = relationship("User", back_populates="preferences")
+    user = relationship("UserModel", back_populates="preferences")
     native_language = relationship("Language")
     learning_languages = relationship(
         "UserLearningLanguage",

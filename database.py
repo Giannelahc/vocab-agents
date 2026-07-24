@@ -1,18 +1,40 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from config import DATABASE_URL
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.orm import declarative_base
+from config import settings
 
-engine = create_engine(
+
+DATABASE_URL = settings.DATABASE_URL
+if DATABASE_URL.startswith("postgresql+psycopg2://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql+psycopg2://", "postgresql+asyncpg://", 1)
+
+engine = create_async_engine(
     DATABASE_URL,
     pool_pre_ping=True,
     pool_recycle=3600
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    expire_on_commit=False,
+    class_=AsyncSession,
+)
 Base = declarative_base()
 
-def init_db():
+import entities.language
+import entities.user
+import entities.user_preferences
+import entities.user_learning_language
+import entities.word
+import entities.word_definition
+import entities.example
+
+async def init_db():
     """
-    Creates all tables defined in models that inherit from Base..
+    Creates all tables defined in models that inherit from Base.
     """
-    Base.metadata.create_all(bind=engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+async def get_db():
+    async with AsyncSessionLocal() as db:
+        yield db

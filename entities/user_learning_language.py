@@ -6,7 +6,7 @@ from database import Base
 
 class UserLearningLanguage(Base):
     __tablename__ = "user_learning_languages"
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
 
     preference_id = Column(
         Integer,
