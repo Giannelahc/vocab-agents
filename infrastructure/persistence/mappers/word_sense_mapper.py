@@ -1,6 +1,6 @@
 
 from domain.models.word_sense import WordSense
-from entities.word_sense import WordSenseModel
+from infrastructure.persistence.entities.word_sense import WordSenseModel
 from infrastructure.persistence.mappers.example_mapper import ExampleMapper
 from infrastructure.persistence.mappers.synonym_mapper import SynonymMapper
 

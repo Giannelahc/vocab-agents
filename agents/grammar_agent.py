@@ -1,5 +1,5 @@
 
-from services.grammar_service import GrammarService
+from prompts.grammar_service import GrammarService
 
 
 class GrammarAgent:

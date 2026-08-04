@@ -4,7 +4,7 @@ from sqlalchemy import func, select
 
 from domain.models.language import Language
 from domain.repositories.language_repository import LanguageRepository
-from entities.language import LanguageModel
+from infrastructure.persistence.entities.language import LanguageModel
 from infrastructure.persistence.mappers.language_mapper import LanguageMapper
 
 

@@ -1,6 +1,6 @@
 
 from domain.models.synonym import Synonym
-from entities.synonym import SynonymModel
+from infrastructure.persistence.entities.synonym import SynonymModel
 
 
 class SynonymMapper:

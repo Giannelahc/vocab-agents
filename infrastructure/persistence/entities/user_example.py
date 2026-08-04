@@ -2,7 +2,7 @@ from sqlalchemy import (
     Column, Integer, ForeignKey, Text
 )
 from sqlalchemy.orm import relationship
-from database import Base
+from infrastructure.persistence.database import Base
 
 class UserExampleModel(Base):
     __tablename__ = "user_examples"

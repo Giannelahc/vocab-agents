@@ -3,7 +3,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from database import Base
+from infrastructure.persistence.database import Base
 
 class UserModel(Base):
     __tablename__ = "users"

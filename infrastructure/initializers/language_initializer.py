@@ -1,6 +1,6 @@
 # infrastructure/persistence/language_initializer.py
 
-from entities.language import LanguageModel
+from infrastructure.persistence.entities.language import LanguageModel
 from infrastructure.repositories.sql_language_repository import SQLLanguageRepository
 
 

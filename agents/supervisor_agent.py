@@ -1,6 +1,6 @@
 import asyncio
 
-from services import pos_tagger
+from prompts import pos_tagger
 from agents import definition_agent, grammar_agent, example_agent
 
 class SupervisorAgent:

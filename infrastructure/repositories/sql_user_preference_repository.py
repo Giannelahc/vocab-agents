@@ -5,8 +5,8 @@ from sqlalchemy.orm import selectinload
 
 from domain.models.user_preference import UserPreference
 from domain.repositories.user_preference_repository import UserPreferenceRepository
-from entities.user_learning_language import UserLearningLanguageModel
-from entities.user_preferences import UserPreferenceModel
+from infrastructure.persistence.entities.user_learning_language import UserLearningLanguageModel
+from infrastructure.persistence.entities.user_preferences import UserPreferenceModel
 from infrastructure.persistence.mappers.user_preference_mapper import UserPreferenceMapper
 
 

@@ -5,8 +5,8 @@ from sqlalchemy.orm import selectinload
 
 from domain.models.vocabulary_word import VocabularyWord
 from domain.repositories.vocabulary_word_repository import VocabularyWordRepository
-from entities.vocabulary_word import VocabularyWordModel
-from entities.word_sense import WordSenseModel
+from infrastructure.persistence.entities.vocabulary_word import VocabularyWordModel
+from infrastructure.persistence.entities.word_sense import WordSenseModel
 from infrastructure.persistence.mappers.vocabulary_word_mapper import VocabularyWordMapper
 from infrastructure.persistence.enums.vocabulary_status import VocabularyStatus as PersistenceVocabularyStatus
 from application.enums.vocabulary_status import VocabularyStatus

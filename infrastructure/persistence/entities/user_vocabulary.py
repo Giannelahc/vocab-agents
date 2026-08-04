@@ -3,7 +3,7 @@ from sqlalchemy import (
     Column, Integer, DateTime, ForeignKey
 )
 from sqlalchemy.sql import func
-from database import Base
+from infrastructure.persistence.database import Base
 
 class UserVocabularyModel(Base):
     __tablename__ = "user_vocabularies"

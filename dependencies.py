@@ -8,7 +8,7 @@ from agents.example_agent import ExampleAgent
 from agents.grammar_agent import GrammarAgent
 from agents.supervisor_agent import SupervisorAgent
 from application.services.supervisor_service import SupervisorService
-from database import get_db
+from infrastructure.persistence.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.repositories.vocabulary_word_repository import VocabularyWordRepository
@@ -30,10 +30,10 @@ from application.mappers.vocabulary_mapper import VocabularyMapper
 from core.container import serp_api_client
 from core.container import openai_client
 
-from services.dictionary_service import DictionaryService
-from services.example_service import ExampleService
-from services.grammar_service import GrammarService
-from services.pos_tagger import PosTaggerService
+from prompts.dictionary_service import DictionaryService
+from prompts.example_service import ExampleService
+from prompts.grammar_service import GrammarService
+from prompts.pos_tagger import PosTaggerService
 from application.services.user_preference import UserPreferenceService
 
 async def get_user_repository(session=Depends(get_db)):

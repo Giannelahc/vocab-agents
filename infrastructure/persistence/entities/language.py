@@ -2,7 +2,7 @@ from sqlalchemy import (
     Column, Integer, ForeignKey, String
 )
 from sqlalchemy.sql import func
-from database import Base
+from infrastructure.persistence.database import Base
 
 class LanguageModel(Base):
     __tablename__ = "languages"

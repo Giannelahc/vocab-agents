@@ -1,5 +1,5 @@
 
-from config import settings
+from core.config import settings
 from openai import AsyncOpenAI
 
 class LLMClient:

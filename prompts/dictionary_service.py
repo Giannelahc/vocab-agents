@@ -42,8 +42,7 @@ class DictionaryService:
           "synonyms": ["..", "..", ".."],
           "translation": [
             "en": ["..", "..", ".."],
-            "pt": ["..", "..", ".."],
-            ...
+            "pt": ["..", "..", ".."]
           ],
           "definition": "..."
         }}

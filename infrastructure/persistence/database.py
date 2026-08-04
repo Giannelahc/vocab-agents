@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
-from config import settings
+from core.config import settings
 
 
 DATABASE_URL = settings.DATABASE_URL
@@ -20,14 +20,14 @@ AsyncSessionLocal = async_sessionmaker(
 )
 Base = declarative_base()
 
-import entities.language
-import entities.user
-import entities.user_preferences
-import entities.user_learning_language
-import entities.vocabulary_word
-import entities.word_sense
-import entities.example
-import entities.user_example
+import infrastructure.persistence.entities.language
+import infrastructure.persistence.entities.user
+import infrastructure.persistence.entities.user_preferences
+import infrastructure.persistence.entities.user_learning_language
+import infrastructure.persistence.entities.vocabulary_word
+import infrastructure.persistence.entities.word_sense
+import infrastructure.persistence.entities.example
+import infrastructure.persistence.entities.user_example
 
 async def init_db():
     """

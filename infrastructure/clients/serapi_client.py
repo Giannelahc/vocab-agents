@@ -2,7 +2,7 @@
 ##from serpapi import GoogleSearch
 import asyncio
 
-from config import settings
+from core.config import settings
 
 import httpx
 

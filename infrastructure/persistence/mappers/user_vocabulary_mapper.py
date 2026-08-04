@@ -1,6 +1,6 @@
 
 from domain.models.user_vocabulary import UserVocabulary
-from entities.user_vocabulary import UserVocabularyModel
+from infrastructure.persistence.entities.user_vocabulary import UserVocabularyModel
 
 
 class UserVocabularyMapper:

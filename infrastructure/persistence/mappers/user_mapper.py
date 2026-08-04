@@ -1,6 +1,6 @@
 
 from domain.models.user import User
-from entities.user import UserModel
+from infrastructure.persistence.entities.user import UserModel
 
 
 class UserMapper:

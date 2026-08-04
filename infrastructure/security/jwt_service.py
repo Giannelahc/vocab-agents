@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 import jwt
 
-from config import settings
+from core.config import settings
 
 
 class JWTService:

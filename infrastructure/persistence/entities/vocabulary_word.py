@@ -4,7 +4,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from database import Base
+from infrastructure.persistence.database import Base
 from infrastructure.persistence.enums.vocabulary_status import VocabularyStatus
 
 class VocabularyWordModel(Base):

@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.concurrency import asynccontextmanager
 from api import auth_controller, vocabulary_controller, preference_controller
-from database import AsyncSessionLocal, init_db
-from infrastructure.persistence.language_initializer import LanguageInitializer
+from infrastructure.persistence.database import AsyncSessionLocal, init_db
+from infrastructure.initializers.language_initializer import LanguageInitializer
 from infrastructure.repositories.sql_language_repository import SQLLanguageRepository
 from core.container import http_client
 

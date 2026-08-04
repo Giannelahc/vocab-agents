@@ -1,6 +1,6 @@
 
 from domain.models.example import Example
-from entities.example import ExampleModel
+from infrastructure.persistence.entities.example import ExampleModel
 
 
 class ExampleMapper:

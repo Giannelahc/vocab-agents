@@ -1,4 +1,4 @@
-from services.dictionary_service import DictionaryService
+from prompts.dictionary_service import DictionaryService
 
 class DefinitionAgent:
     def __init__(self, dictionary_service: DictionaryService):

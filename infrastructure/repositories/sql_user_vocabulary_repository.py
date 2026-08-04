@@ -5,8 +5,8 @@ from sqlalchemy import select
 from domain.models.user_vocabulary import UserVocabulary
 from domain.models.vocabulary_word import VocabularyWord
 from domain.repositories.user_vocabulary_repository import UserVocabularyRepository
-from entities.user_vocabulary import UserVocabularyModel
-from entities.vocabulary_word import VocabularyWordModel
+from infrastructure.persistence.entities.user_vocabulary import UserVocabularyModel
+from infrastructure.persistence.entities.vocabulary_word import VocabularyWordModel
 from infrastructure.persistence.mappers.user_vocabulary_mapper import UserVocabularyMapper
 
 

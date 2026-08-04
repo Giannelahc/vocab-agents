@@ -1,6 +1,6 @@
 
 from domain.models.user_learning_language import UserLearningLanguage
-from entities.user_learning_language import UserLearningLanguageModel
+from infrastructure.persistence.entities.user_learning_language import UserLearningLanguageModel
 from infrastructure.persistence.mappers.language_mapper import LanguageMapper
 
 

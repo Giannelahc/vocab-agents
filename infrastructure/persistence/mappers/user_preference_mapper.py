@@ -1,6 +1,6 @@
 
 from domain.models.user_preference import UserPreference
-from entities.user_preferences import UserPreferenceModel
+from infrastructure.persistence.entities.user_preferences import UserPreferenceModel
 from infrastructure.persistence.mappers.language_mapper import LanguageMapper
 from infrastructure.persistence.mappers.user_learning_language_mapper import UserLearningLanguageMapper
 

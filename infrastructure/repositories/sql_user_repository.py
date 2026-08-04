@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from domain.models.user import User
 from domain.repositories.user_repository import UserRepository
-from entities.user import UserModel
+from infrastructure.persistence.entities.user import UserModel
 from infrastructure.persistence.mappers.user_mapper import UserMapper
 
 

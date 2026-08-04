@@ -2,7 +2,7 @@
 # application/services/review_scheduler.py
 
 from datetime import datetime, timedelta, timezone
-from config import settings
+from core.config import settings
 
 
 class ReviewScheduler:

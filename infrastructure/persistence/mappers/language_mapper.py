@@ -1,6 +1,6 @@
 
 from domain.models.language import Language
-from entities.language import LanguageModel
+from infrastructure.persistence.entities.language import LanguageModel
 
 
 class LanguageMapper:

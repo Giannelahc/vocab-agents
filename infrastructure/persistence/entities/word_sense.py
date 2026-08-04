@@ -5,7 +5,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from database import Base
+from infrastructure.persistence.database import Base
 
 class WordSenseModel(Base):
     __tablename__ = "word_senses"

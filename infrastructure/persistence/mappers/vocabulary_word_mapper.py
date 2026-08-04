@@ -1,6 +1,6 @@
 
 from domain.models.vocabulary_word import VocabularyWord
-from entities.vocabulary_word import VocabularyWordModel
+from infrastructure.persistence.entities.vocabulary_word import VocabularyWordModel
 from infrastructure.persistence.enums.vocabulary_status import VocabularyStatus
 from application.enums.vocabulary_status import VocabularyStatus as AppVocabularyStatus
 from infrastructure.persistence.mappers.word_sense_mapper import WordSenseMapper

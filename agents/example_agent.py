@@ -1,4 +1,4 @@
-from services.example_service import ExampleService
+from prompts.example_service import ExampleService
 
 class ExampleAgent:
     def __init__(self, example_service: ExampleService):
