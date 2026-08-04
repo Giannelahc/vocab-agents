@@ -15,7 +15,7 @@ class UserModel(Base):
     email           = Column(String(120), nullable=False, unique=True)
     password_hash   = Column(String(255), nullable=False)
     preferences     = relationship(
-        "UserPreference",
+        "UserPreferenceModel",
         back_populates="user",
         uselist=False
     )

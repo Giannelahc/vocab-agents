@@ -43,7 +43,6 @@ async def login(request: LoginRequest, auth_service = Depends(get_auth_service))
             request.email,
             request.password
         )
-        print("Token generated: ", token)
         return TokenResponse(
             access_token=token,
             token_type="Bearer"

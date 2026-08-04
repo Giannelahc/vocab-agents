@@ -4,8 +4,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from database import Base
 
-class ExampleModel(Base):
-    __tablename__ = "examples"
+class UserExampleModel(Base):
+    __tablename__ = "user_examples"
 
     id = Column(Integer, primary_key=True)
 
@@ -18,5 +18,5 @@ class ExampleModel(Base):
 
     word_sense = relationship(
         "WordSenseModel",
-        back_populates="examples"
+        back_populates="user_examples"
     )

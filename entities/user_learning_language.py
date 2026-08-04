@@ -4,7 +4,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from database import Base
 
-class UserLearningLanguage(Base):
+class UserLearningLanguageModel(Base):
     __tablename__ = "user_learning_languages"
     id = Column(Integer, primary_key=True, autoincrement=True)
 
@@ -19,8 +19,8 @@ class UserLearningLanguage(Base):
     )
 
     preference = relationship(
-        "UserPreference",
+        "UserPreferenceModel",
         back_populates="learning_languages"
     )
 
-    language = relationship("Language")
+    language = relationship("LanguageModel")

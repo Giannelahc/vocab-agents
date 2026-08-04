@@ -1,33 +1,14 @@
-import json
+
+from services.grammar_service import GrammarService
+
 
 class GrammarAgent:
-    def __init__(self, llm):
-        self.llm = llm
+    def __init__(self, grammar_service: GrammarService):
+        self.grammar_service = grammar_service
 
-    def get_gender(self, word, target_language):
-        prompt = f"""
-        '{word}' in {target_language} is masculine or feminine
-        If it does not have a gender, just use 'ND'
-        DO NOT use markdown.
-        DO NOT use ```json
-        Return a JSON object like:
-        {{
-          "gender": "..",
-        }}
-        """
-        response = json.loads(self.llm(prompt))
-        return response["gender"]
+    async def process_noun(self, word, target_language):
+        return await self.grammar_service.get_gender(word, target_language)
+
+    async def process_verb(self, word, target_language):
+        return await self.grammar_service.get_conjugation(word, target_language)
     
-    def get_conjugation(self, word, target_language):
-        prompt = f"""
-        Provide the conjugation present tense used for this '{word}' in {target_language}, 
-        for the first singular person and for first and third person in plural
-        DO NOT use markdown.
-        DO NOT use ```json
-        Return a JSON object like:
-        {{
-          "conjugation": ["", "", ""],
-        }}
-        """
-        response = json.loads(self.llm(prompt))
-        return response["conjugation"]

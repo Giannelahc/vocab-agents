@@ -1,23 +1,28 @@
 import json
+import traceback
+
+from infrastructure.clients.llm_client import LLMClient
+from infrastructure.clients.serapi_client import SerpApiClient
 
 class ExampleService:
-    def __init__(self, llm, serapi):
-        self.llm = llm
-        self.serapi = serapi
+    def __init__(self, llm_client: LLMClient, serapi_client: SerpApiClient):
+        self.llm_client = llm_client
+        self.serapi_client = serapi_client
 
-    def get_examples(self, word: str, tag: str, language_detected: str):
-        return self.get_examples_from_serapi_search(word, tag, language_detected)
+    async def get_examples(self, word: str, tag: str, language_detected: str):
+        return await self.get_examples_from_serapi_search(word, tag, language_detected)
     
-    def get_examples_from_serapi_search(self, word: str, tag: str, language_detected: str):
+    async def get_examples_from_serapi_search(self, word: str, tag: str, language_detected: str):
         query = f'{word} examples in {language_detected}'
         try:
-            examples = self.serapi(query)
-            return self.process_examples(word, tag, examples, language_detected)
+            examples = await self.serapi_client.search(query)
+            return await self.process_examples(word, tag, examples, language_detected)
         except Exception as e:
-            print("SerAPI search error:", e)
+            print("SerAPI search error:", repr(e))
+            traceback.print_exc()
         return None
 
-    def process_examples(self, word,  tag: str, examples, language_detected):
+    async def process_examples(self, word,  tag: str, examples, language_detected):
         clean_write = f"""Clean and rewrite 3 examples the word '{word}' as '{tag}' base on these examples
                         {examples}. """
         prompt = f""" {clean_write}. Everything must be in {language_detected}, 
@@ -27,8 +32,8 @@ class ExampleService:
         DO NOT use ```json
         Return a JSON object like:
         {{
-          "examples": "[.., .., ..]"
+          "examples": ["..", "..", ".."]
         }}
         """
-        response = self.llm(prompt)
+        response = await self.llm_client.complete(prompt)
         return json.loads(response)

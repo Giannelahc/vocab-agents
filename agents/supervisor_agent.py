@@ -1,66 +1,66 @@
-from services import pos_tagger, user_preference
+import asyncio
+
+from services import pos_tagger
 from agents import definition_agent, grammar_agent, example_agent
 
 class SupervisorAgent:
-    def __init__(self, user_preference_service: user_preference.UserPreferenceService, 
+    def __init__(self,  
                  pos_tagger: pos_tagger.PosTaggerService, 
                  definition_agent: definition_agent.DefinitionAgent,
                  grammar_agent: grammar_agent.GrammarAgent,
                  example_agent: example_agent.ExampleAgent):
-        self.preference_service = user_preference_service
         self.pos_tagger_service = pos_tagger
         self.definition_agent = definition_agent
         self.grammar_agent = grammar_agent
         self.example_agent = example_agent
 
-    def run(self, word, user_id, language_detected):
-        target_languages = self.get_target_languages(user_id)
-        result = {}
+    async def run(self, word, target_languages, language_code):
 
-        types = self.pos_tagger_service.process_word(word, language_detected)["types"]
-        result[language_detected] = {}
-        for type in types:
-            print(type)
-            tasks = self.decide_tasks(type)
-            print(tasks)
-            result[language_detected] = self.execute_tasks(tasks=tasks, word=word, tag=type, target_languages=target_languages, 
-                                                           result=result[language_detected], language_detected=language_detected)
+        response = await self.pos_tagger_service.process_word(word, language_code)
 
+        types = response["types"]
+
+        tags = []
+
+        for tag in types:
+            tags.append(self.build_word_tag(word, tag, language_code, target_languages))
+
+        result = await asyncio.gather(*tags)
         return result
 
 
-    def execute_tasks(self, tasks, word, tag, target_languages, result, language_detected):
-        print(language_detected)
-        result[tag] = self.definition_agent.run(word=word, tag=tag, target_languages=target_languages, language_detected = language_detected)
-        if "gender_info" in tasks:
-            result[tag]["gender"] = self.grammar_agent.get_gender(word, language_detected)
-        if "conjugation" in tasks:
-            result[tag]["conjugation"] = self.grammar_agent.get_conjugation(word, language_detected)
-        if "examples" in tasks:
-            result[tag]["examples"] = self.example_agent.run(word, tag, language_detected)
-        
-        return result
-
-
-    def get_target_languages(self, user_id):
-        pref = self.preference_service.get_user_preferences(user_id)
-
-        target_languages = [
-            lang.language.name for lang in pref.learning_languages
+    async def build_word_tag(self, word: str, tag: str, language_code: str, target_languages: list):
+        tasks = [
+            self.definition_agent.run(word, tag, target_languages, language_code),
+            self.example_agent.run(word, tag, language_code)
         ]
+
+        if "verb" in tag:
+            tasks.append(
+                self.grammar_agent.process_verb(word, language_code)
+            )
+
+        if "noun" in tag:
+            tasks.append(
+                self.grammar_agent.process_noun(word, language_code)
+            )
+
+        definition_data, examples, *grammar_data = await asyncio.gather(*tasks)  
+
+        grammar = {}
+
+        for result in grammar_data:
+            grammar.update(result)
+
+        return self.build_result(tag, definition_data, examples, grammar)
+
+    def build_result(self, tag, definition_data, examples, grammar_data):
         
-        if pref.native_language.name not in target_languages:
-            target_languages.append(pref.native_language.name)
-        return target_languages
+        result = {
+            "part_of_speech": tag,
+            **definition_data,
+            **examples,
+            **grammar_data
+        }
 
-
-    def decide_tasks(self, type: str):
-        tasks = ["definition", "examples"]
-        if type.__contains__("verb"):
-            tasks.append("grammar_rules")
-            tasks.append("conjugation")
-        
-        if type.__contains__("noun"):
-            tasks.append("gender_info")
-
-        return tasks
+        return result

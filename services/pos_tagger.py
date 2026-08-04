@@ -1,13 +1,15 @@
 import json
 
+from infrastructure.clients.llm_client import LLMClient
+
 class PosTaggerService:
-    def __init__(self, llm):
-        self.llm = llm
+    def __init__(self, llm_client: LLMClient):
+        self.llm_client = llm_client
 
-    def getTag(self, word):
-        return self.process_word(word)
+    async def getTag(self, word):
+        return await self.process_word(word)
 
-    def process_word(self, word, languaje_detected):
+    async def process_word(self, word, languaje_detected):
         prompt = f"""
         Provide the grammar types 
         for example verb, noun, relative pronoun, preposition, adverb, expression and so on 
@@ -24,5 +26,5 @@ class PosTaggerService:
           "types": ["verb", "noun"]
         }}
         """
-        response = self.llm(prompt)
+        response = await self.llm_client.complete(prompt)
         return json.loads(response)

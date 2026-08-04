@@ -4,8 +4,8 @@ from sqlalchemy import (
 from sqlalchemy.sql import func
 from database import Base
 
-class Language(Base):
+class LanguageModel(Base):
     __tablename__ = "languages"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(20), nullable=False)
     code = Column(String(5))
+    name = Column(String(20), nullable=False)

@@ -1,15 +1,15 @@
 from sqlalchemy import (
-    Column, Integer, ForeignKey, Text
+    Column, Integer, ForeignKey, String
 )
 from sqlalchemy.orm import relationship
 from database import Base
 
-class ExampleModel(Base):
-    __tablename__ = "examples"
+class SynonymModel(Base):
+    __tablename__ = "synonyms"
 
     id = Column(Integer, primary_key=True)
 
-    sentence = Column(Text, nullable=False)
+    word = Column(String(255), nullable=False)
 
     word_sense_id = Column(
         Integer,
@@ -18,5 +18,5 @@ class ExampleModel(Base):
 
     word_sense = relationship(
         "WordSenseModel",
-        back_populates="examples"
+        back_populates="synonyms"
     )

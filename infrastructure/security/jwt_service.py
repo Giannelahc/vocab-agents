@@ -32,8 +32,9 @@ class JWTService:
     
     def decode_token(self, token: str) -> dict:
 
-        return jwt.decode(
+        payload = jwt.decode(
             token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM]
         )
+        return int(payload["sub"])

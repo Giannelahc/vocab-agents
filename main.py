@@ -1,11 +1,27 @@
 from fastapi import FastAPI
-from api import auth_controller
-from database import init_db
+from fastapi.concurrency import asynccontextmanager
+from api import auth_controller, vocabulary_controller, preference_controller
+from database import AsyncSessionLocal, init_db
+from infrastructure.persistence.language_initializer import LanguageInitializer
+from infrastructure.repositories.sql_language_repository import SQLLanguageRepository
+from core.container import http_client
 
-app = FastAPI(title="Vocabulary API")
-
-@app.on_event("startup")
-async def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     await init_db()
 
+    async with AsyncSessionLocal() as session:
+        repository = SQLLanguageRepository(session)
+
+        initializer = LanguageInitializer(repository)
+
+        await initializer.initialize()
+
+    yield
+    await http_client.close()
+
+app = FastAPI(title="Vocabulary API", lifespan=lifespan)
+
 app.include_router(auth_controller.router, prefix="/vocan-agent/auth", tags=["Auth"])
+app.include_router(vocabulary_controller.router, prefix="/vocan-agent/vocabulary", tags=["Vocabulary"])
+app.include_router(preference_controller.router, prefix="/vocan-agent/preference", tags=["Preference"])

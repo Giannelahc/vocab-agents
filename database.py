@@ -24,9 +24,10 @@ import entities.language
 import entities.user
 import entities.user_preferences
 import entities.user_learning_language
-import entities.word
-import entities.word_definition
+import entities.vocabulary_word
+import entities.word_sense
 import entities.example
+import entities.user_example
 
 async def init_db():
     """
