@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 from domain.models.vocabulary_word import VocabularyWord
 from domain.repositories.vocabulary_word_repository import VocabularyWordRepository
 from infrastructure.persistence.entities.vocabulary_word import VocabularyWordModel
+from infrastructure.persistence.entities.user_vocabulary import UserVocabularyModel
 from infrastructure.persistence.entities.word_sense import WordSenseModel
 from infrastructure.persistence.mappers.vocabulary_word_mapper import VocabularyWordMapper
 from infrastructure.persistence.enums.vocabulary_status import VocabularyStatus as PersistenceVocabularyStatus
@@ -113,3 +114,34 @@ class SQLVocabularyWordRepository(VocabularyWordRepository):
             return None
 
         return VocabularyWordMapper.to_entity(model)
+
+    async def find_by_user_id(self, user_id: int, language_id: int, page: int, page_size: int) -> list[VocabularyWord]:
+        stmt = (select(VocabularyWordModel)
+                .join(UserVocabularyModel)
+                .options(
+                    selectinload(VocabularyWordModel.language),
+                    selectinload(VocabularyWordModel.senses)
+                        .selectinload(WordSenseModel.examples),
+
+                    selectinload(VocabularyWordModel.senses)
+                        .selectinload(WordSenseModel.synonyms),
+
+                    selectinload(VocabularyWordModel.senses)
+                        .selectinload(WordSenseModel.user_examples), 
+                )
+                .order_by(VocabularyWordModel.created_at.desc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+                .where(UserVocabularyModel.user_id == user_id)
+                )
+
+        if language_id is not None:
+            stmt = stmt.where(
+                VocabularyWordModel.language_id == language_id
+            )
+
+        result = await self.session.execute(stmt)
+
+        models = result.scalars().all()
+
+        return [VocabularyWordMapper.to_entity(model) for model in models]

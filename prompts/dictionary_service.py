@@ -29,8 +29,8 @@ class DictionaryService:
         new_definitions = f"""Write definition for the word  '{word}' as '{tag}' """
         definitions_default = new_definitions if definitions == None else clean_write
         prompt = f""" {definitions_default}. Everything must be in {language_detected}, 
-        in synonyms field add synonyms for this {word} 
-        Add translations of the word in just those {len(target_languages)} languages {target_languages}. 
+        in synonyms field add 4 synonyms for this {word} as {tag}
+        Add 4 translations of the word '{word}' as '{tag}' in just those {len(target_languages)} languages {target_languages}. 
         Use the codes to identify the languages in translation field.
         filter the definitions you consider most appropiates and important and all 
         of the information must be compact in definition field in the json

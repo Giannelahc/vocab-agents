@@ -8,6 +8,7 @@ from agents.example_agent import ExampleAgent
 from agents.grammar_agent import GrammarAgent
 from agents.supervisor_agent import SupervisorAgent
 from application.services.supervisor_service import SupervisorService
+from application.services.vocabulary_word_service import VocabularyWordService
 from infrastructure.persistence.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -133,3 +134,8 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         )
 
     return user_id
+
+def get_vocabulary_word_service(
+    vocabulary_word_repository: VocabularyWordRepository = Depends(get_vocabulary_repository)
+) -> VocabularyWordService:
+    return VocabularyWordService(vocabulary_word_repository=vocabulary_word_repository)

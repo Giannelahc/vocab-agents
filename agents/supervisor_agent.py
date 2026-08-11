@@ -42,7 +42,7 @@ class SupervisorAgent:
 
         if "noun" in tag:
             tasks.append(
-                self.grammar_agent.process_noun(word, language_code)
+                self.grammar_agent.process_noun(word, tag, language_code)
             )
 
         definition_data, examples, *grammar_data = await asyncio.gather(*tasks)  

@@ -26,3 +26,7 @@ class VocabularyWordRepository(ABC):
     @abstractmethod
     async def find_by_id(self, vocabulary_word_id: int) -> VocabularyWord | None:
         pass
+
+    @abstractmethod
+    async def find_by_user_id(self, user_id: int, language_id: int, page: int, page_size: int) -> list[VocabularyWord]:
+        pass
