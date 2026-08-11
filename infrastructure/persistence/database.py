@@ -28,6 +28,8 @@ import infrastructure.persistence.entities.vocabulary_word
 import infrastructure.persistence.entities.word_sense
 import infrastructure.persistence.entities.example
 import infrastructure.persistence.entities.user_example
+import infrastructure.persistence.entities.review
+import infrastructure.persistence.entities.exercise
 
 async def init_db():
     """

@@ -1,9 +1,9 @@
 
-from prompts.grammar_service import GrammarService
+from prompts.grammar_prompt import GrammarPromptBuilder
 
 
 class GrammarAgent:
-    def __init__(self, grammar_service: GrammarService):
+    def __init__(self, grammar_service: GrammarPromptBuilder):
         self.grammar_service = grammar_service
 
     async def process_noun(self, word, tag, target_language):

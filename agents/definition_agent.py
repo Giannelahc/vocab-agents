@@ -1,7 +1,7 @@
-from prompts.dictionary_service import DictionaryService
+from prompts.definition_prompt import DefinitionPromptBuilder
 
 class DefinitionAgent:
-    def __init__(self, dictionary_service: DictionaryService):
+    def __init__(self, dictionary_service: DefinitionPromptBuilder):
         self.dictionary_service = dictionary_service
 
     def run(self, word, tag, target_languages, language_detected):

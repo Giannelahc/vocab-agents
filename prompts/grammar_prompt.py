@@ -3,7 +3,7 @@ from textwrap import dedent
 
 from infrastructure.clients.llm_client import LLMClient
 
-class GrammarService:
+class GrammarPromptBuilder:
     def __init__(self, llm_client: LLMClient):
         self.llm_client = llm_client
 

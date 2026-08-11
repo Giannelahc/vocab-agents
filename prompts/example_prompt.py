@@ -4,7 +4,7 @@ import traceback
 from infrastructure.clients.llm_client import LLMClient
 from infrastructure.clients.serapi_client import SerpApiClient
 
-class ExampleService:
+class ExamplePromptBuilder:
     def __init__(self, llm_client: LLMClient, serapi_client: SerpApiClient):
         self.llm_client = llm_client
         self.serapi_client = serapi_client

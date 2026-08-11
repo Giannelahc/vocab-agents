@@ -2,7 +2,7 @@ import json
 
 from infrastructure.clients.llm_client import LLMClient
 
-class PosTaggerService:
+class PosTaggerPromptBuilder:
     def __init__(self, llm_client: LLMClient):
         self.llm_client = llm_client
 

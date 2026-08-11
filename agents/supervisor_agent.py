@@ -1,11 +1,11 @@
 import asyncio
 
-from prompts import pos_tagger
+from prompts import pos_tagger_prompt
 from agents import definition_agent, grammar_agent, example_agent
 
 class SupervisorAgent:
     def __init__(self,  
-                 pos_tagger: pos_tagger.PosTaggerService, 
+                 pos_tagger: pos_tagger_prompt.PosTaggerPromptBuilder, 
                  definition_agent: definition_agent.DefinitionAgent,
                  grammar_agent: grammar_agent.GrammarAgent,
                  example_agent: example_agent.ExampleAgent):

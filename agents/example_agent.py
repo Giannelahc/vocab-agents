@@ -1,7 +1,7 @@
-from prompts.example_service import ExampleService
+from prompts.example_prompt import ExamplePromptBuilder
 
 class ExampleAgent:
-    def __init__(self, example_service: ExampleService):
+    def __init__(self, example_service: ExamplePromptBuilder):
         self.example_service = example_service
 
     def run(self, word, tag, language_detected):

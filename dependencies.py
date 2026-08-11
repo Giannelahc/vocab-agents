@@ -6,35 +6,41 @@ from fastapi.security import OAuth2PasswordBearer
 from agents.definition_agent import DefinitionAgent
 from agents.example_agent import ExampleAgent
 from agents.grammar_agent import GrammarAgent
+from agents.exercise_agent import ExerciseAgent
 from agents.supervisor_agent import SupervisorAgent
 from application.services.supervisor_service import SupervisorService
 from application.services.vocabulary_word_service import VocabularyWordService
+from application.services.review_service import ReviewService
 from infrastructure.persistence.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.repositories.vocabulary_word_repository import VocabularyWordRepository
 from domain.repositories.user_vocabulary_repository import UserVocabularyRepository
 from domain.repositories.language_repository import LanguageRepository
+from domain.repositories.review_repository import ReviewRepository
 
 from infrastructure.clients.llm_client import LLMClient
 from infrastructure.repositories.sql_language_repository import SQLLanguageRepository
 from infrastructure.repositories.sql_user_preference_repository import SQLUserPreferenceRepository
 from infrastructure.repositories.sql_user_vocabulary_repository import SQLUserVocabularyRepository
 from infrastructure.repositories.sql_user_repository import SQLUserRepository
+from infrastructure.repositories.sql_review_repository import SQLReviewRepository
 
 from infrastructure.repositories.sql_vocabulary_word_repository import SQLVocabularyWordRepository
 from infrastructure.security.jwt_service import JWTService
 
 from application.services.auth_service import AuthService
 from application.mappers.vocabulary_mapper import VocabularyMapper
+from application.mappers.review_mapper import ReviewMapper
 
 from core.container import serp_api_client
 from core.container import openai_client
 
-from prompts.dictionary_service import DictionaryService
-from prompts.example_service import ExampleService
-from prompts.grammar_service import GrammarService
-from prompts.pos_tagger import PosTaggerService
+from prompts.definition_prompt import DefinitionPromptBuilder
+from prompts.example_prompt import ExamplePromptBuilder
+from prompts.grammar_prompt import GrammarPromptBuilder
+from prompts.pos_tagger_prompt import PosTaggerPromptBuilder
+from prompts.exercise_prompt import ExercisePromptBuilder
 from application.services.user_preference import UserPreferenceService
 
 async def get_user_repository(session=Depends(get_db)):
@@ -66,26 +72,32 @@ def get_language_repository(session=Depends(get_db)):
 def get_user_preference_repository(session=Depends(get_db)):
     return SQLUserPreferenceRepository(session)
 
+def get_review_repository(session=Depends(get_db)):
+    return SQLReviewRepository(session)
+
 def get_user_preference_service(user_preference_repository=Depends(get_user_preference_repository)):
     return UserPreferenceService(user_preference_repository)
 
-def get_dictionary_service():
-    return DictionaryService(
+def get_definition_prompt_builder():
+    return DefinitionPromptBuilder(
         llm_client=get_llm_client(),
         serapi_client=get_serapi_client()
     )
 
 def get_grammar_service():
-    return GrammarService(llm_client=get_llm_client())
+    return GrammarPromptBuilder(llm_client=get_llm_client())
 
 def get_example_service():
-    return ExampleService(
+    return ExamplePromptBuilder(
         llm_client=get_llm_client(),
         serapi_client=get_serapi_client()
     )
 
+def get_exercise_service():
+    return ExercisePromptBuilder(llm_client=get_llm_client())
+
 def get_definition_agent():
-    return DefinitionAgent(dictionary_service=get_dictionary_service())
+    return DefinitionAgent(dictionary_service=get_definition_prompt_builder())
 
 def get_grammar_agent():
     return GrammarAgent(grammar_service=get_grammar_service())
@@ -93,12 +105,32 @@ def get_grammar_agent():
 def get_example_agent():
     return ExampleAgent(example_service=get_example_service())
 
+def get_exercise_agent():
+    return ExerciseAgent(exercise_service=get_exercise_service())
+
 def get_pos_tagger_service():
-    return PosTaggerService(llm_client=get_llm_client())
+    return PosTaggerPromptBuilder(llm_client=get_llm_client())
 
 def get_supervisor_agent():
     return SupervisorAgent(definition_agent=get_definition_agent(), grammar_agent=get_grammar_agent(),
                            example_agent=get_example_agent(), pos_tagger=get_pos_tagger_service())
+
+def get_review_service(
+        session: AsyncSession = Depends(get_db),
+        review_repository: ReviewRepository = Depends(get_review_repository),    
+        user_vocabulary_repository: UserVocabularyRepository = Depends(get_user_vocabulary_repository),
+        language_repository: LanguageRepository = Depends(get_language_repository),
+        user_preference_service: UserPreferenceService = Depends(get_user_preference_service),
+        exercise_agent: ExerciseAgent = Depends(get_exercise_agent)) -> ReviewService:
+    return ReviewService(
+        session=session,
+        review_repository=review_repository,
+        user_vocabulary_repository=user_vocabulary_repository,
+        language_repository=language_repository,
+        user_preference_service=user_preference_service,
+        exercise_agent=exercise_agent,
+        review_mapper=ReviewMapper()
+    )
 
 def get_supervisor_service(
     session: AsyncSession = Depends(get_db),
@@ -106,6 +138,7 @@ def get_supervisor_service(
     user_vocabulary_repository: UserVocabularyRepository = Depends(get_user_vocabulary_repository),
     language_repository: LanguageRepository = Depends(get_language_repository),
     user_preference_service: UserPreferenceService = Depends(get_user_preference_service),
+    review_service: ReviewService = Depends(get_review_service),
     supervisor_agent: SupervisorAgent = Depends(get_supervisor_agent),
 ) -> SupervisorService:
 
@@ -114,6 +147,7 @@ def get_supervisor_service(
         vocabulary_repository=vocabulary_repository,
         user_vocabulary_repository=user_vocabulary_repository,
         language_repository=language_repository,
+        review_service=review_service,
         user_preference_service=user_preference_service,
         supervisor_agent=supervisor_agent,
         vocabulary_mapper=VocabularyMapper()
@@ -139,3 +173,5 @@ def get_vocabulary_word_service(
     vocabulary_word_repository: VocabularyWordRepository = Depends(get_vocabulary_repository)
 ) -> VocabularyWordService:
     return VocabularyWordService(vocabulary_word_repository=vocabulary_word_repository)
+
+

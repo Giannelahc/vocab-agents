@@ -11,6 +11,7 @@ from domain.repositories.vocabulary_word_repository import VocabularyWordReposit
 from domain.repositories.user_vocabulary_repository import UserVocabularyRepository
 from domain.repositories.language_repository import LanguageRepository
 from application.services.user_preference import UserPreferenceService
+from application.services.review_service import ReviewService
 from domain.models.user_vocabulary import UserVocabulary
 
 
@@ -21,12 +22,14 @@ class SupervisorService:
                  user_vocabulary_repository: UserVocabularyRepository,
                  language_repository: LanguageRepository,
                  user_preference_service: UserPreferenceService,
+                 review_service: ReviewService,
                  supervisor_agent: SupervisorAgent,
                  vocabulary_mapper: VocabularyMapper):
         self.session = session
         self.vocabulary_repository = vocabulary_repository
         self.language_repository = language_repository
         self.user_preference_service = user_preference_service
+        self.review_service = review_service
         self.supervisor_agent = supervisor_agent
         self.vocabulary_mapper = vocabulary_mapper
         self.user_vocabulary_repository = user_vocabulary_repository
@@ -81,6 +84,8 @@ class SupervisorService:
 
             await self.save_analysis(vocabulary, analysis)
             await self.session.commit()
+
+            await self.review_service.generate_review(user_id, vocabulary)
 
         except Exception:
             await self.session.rollback()

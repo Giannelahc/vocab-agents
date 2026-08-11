@@ -4,10 +4,10 @@ import traceback
 from infrastructure.clients.llm_client import LLMClient
 from infrastructure.clients.serapi_client import SerpApiClient
 
-class DictionaryService:
+class DefinitionPromptBuilder:
     def __init__(self, llm_client: LLMClient, serapi_client: SerpApiClient):
         self.llm_client = llm_client
-        self.serapi_client = serapi_client
+        self.serapi_client = serapi_client 
 
     async def get_definition(self, word: str, tag: str, target_languages: list, language_detected: str):
         return await self.get_definition_from_serapi_search(word, tag, target_languages, language_detected)
