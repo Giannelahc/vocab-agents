@@ -4,9 +4,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from agents.supervisor_agent import SupervisorAgent
 from application.enums.vocabulary_status import VocabularyStatus
+from application.enums.generation_status import GenerationStatus
 from application.mappers.vocabulary_mapper import VocabularyMapper
 from application.services.review_scheduler import ReviewScheduler
 from domain.models.vocabulary_word import VocabularyWord
+from domain.models.review import Review
 from domain.repositories.vocabulary_word_repository import VocabularyWordRepository
 from domain.repositories.user_vocabulary_repository import UserVocabularyRepository
 from domain.repositories.language_repository import LanguageRepository
@@ -60,18 +62,20 @@ class SupervisorService:
         saved_word = await self.vocabulary_repository.save(vocabulary)
 
 
-        await self.user_vocabulary_repository.save(
+        user_vocabulary = await self.user_vocabulary_repository.save(
             UserVocabulary(
                 user_id=user_id,
                 vocabulary_word_id=saved_word.id,
                 review_level=0,
-                next_review_at=ReviewScheduler.schedule_first_review(0)
+                next_review_at=ReviewScheduler.schedule_next_review(0)
             )
         )
 
-        return saved_word
+        review = await self.review_service.register_review(user_vocabulary.id)
 
-    async def process_word(self, user_id: int, vocabulary_id: int):
+        return saved_word, review
+
+    async def process_word(self, user_id: int, vocabulary_id: int, review: Review):
         vocabulary = await self.vocabulary_repository.find_by_id(vocabulary_id)
 
         try:
@@ -82,10 +86,12 @@ class SupervisorService:
 
             analysis = await self.build_analysis(vocabulary.word, vocabulary.language_id, user_id)
 
+            ##update status to COMPLETED
             await self.save_analysis(vocabulary, analysis)
+
             await self.session.commit()
 
-            await self.review_service.generate_review(user_id, vocabulary)
+            await self.review_service.generate_review(user_id=user_id, review=review)
 
         except Exception:
             await self.session.rollback()

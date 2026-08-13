@@ -1,13 +1,13 @@
 
 from domain.models.user_learning_language import UserLearningLanguage
 from domain.models.user_preference import UserPreference
-from schemas.preference import UserPreferenceRequest
+from schemas.preference import UserPreferenceDto
 
 
 class UserPreferenceMapper:
 
     @staticmethod
-    def to_entity(request: UserPreferenceRequest, user_id: int) -> UserPreference:
+    def to_entity(request: UserPreferenceDto, user_id: int) -> UserPreference:
 
         return UserPreference(
             id=request.id,
@@ -20,9 +20,9 @@ class UserPreferenceMapper:
         )
 
     @staticmethod
-    def to_request(entity: UserPreference) -> UserPreferenceRequest:
+    def to_dto(entity: UserPreference) -> UserPreferenceDto:
 
-        model = UserPreferenceRequest(
+        model = UserPreferenceDto(
             id=entity.id,
             native_language_id=entity.native_language_id,
             learning_languages=[

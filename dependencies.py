@@ -119,6 +119,7 @@ def get_review_service(
         session: AsyncSession = Depends(get_db),
         review_repository: ReviewRepository = Depends(get_review_repository),    
         user_vocabulary_repository: UserVocabularyRepository = Depends(get_user_vocabulary_repository),
+        vocabulary_repository: VocabularyWordRepository = Depends(get_vocabulary_repository),
         language_repository: LanguageRepository = Depends(get_language_repository),
         user_preference_service: UserPreferenceService = Depends(get_user_preference_service),
         exercise_agent: ExerciseAgent = Depends(get_exercise_agent)) -> ReviewService:
@@ -126,6 +127,7 @@ def get_review_service(
         session=session,
         review_repository=review_repository,
         user_vocabulary_repository=user_vocabulary_repository,
+        vocabulary_word_repository=vocabulary_repository,
         language_repository=language_repository,
         user_preference_service=user_preference_service,
         exercise_agent=exercise_agent,
