@@ -5,5 +5,6 @@ from typing import Optional
 @dataclass
 class UserExample:
 
-    id: Optional[int]
+    word_sense_id: int
     sentence: str
+    id: Optional[int] = None

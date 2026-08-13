@@ -3,6 +3,7 @@ from domain.models.word_sense import WordSense
 from infrastructure.persistence.entities.word_sense import WordSenseModel
 from infrastructure.persistence.mappers.example_mapper import ExampleMapper
 from infrastructure.persistence.mappers.synonym_mapper import SynonymMapper
+from infrastructure.persistence.mappers.user_example_mapper import UserExampleMapper
 
 
 class WordSenseMapper:
@@ -24,6 +25,10 @@ class WordSenseMapper:
             synonyms=[
                 SynonymMapper.to_entity(s)
                 for s in model.synonyms
+            ],
+            user_examples=[
+                UserExampleMapper.to_entity(ex)
+                for ex in model.user_examples
             ]
         )
 

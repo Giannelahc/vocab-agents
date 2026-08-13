@@ -10,6 +10,7 @@ from agents.exercise_agent import ExerciseAgent
 from agents.supervisor_agent import SupervisorAgent
 from application.services.supervisor_service import SupervisorService
 from application.services.vocabulary_word_service import VocabularyWordService
+from application.services.user_example_service import UserExampleService
 from application.services.review_service import ReviewService
 from infrastructure.persistence.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +19,7 @@ from domain.repositories.vocabulary_word_repository import VocabularyWordReposit
 from domain.repositories.user_vocabulary_repository import UserVocabularyRepository
 from domain.repositories.language_repository import LanguageRepository
 from domain.repositories.review_repository import ReviewRepository
+from domain.repositories.user_example_repository import UserExampleRepository
 
 from infrastructure.clients.llm_client import LLMClient
 from infrastructure.repositories.sql_language_repository import SQLLanguageRepository
@@ -25,6 +27,7 @@ from infrastructure.repositories.sql_user_preference_repository import SQLUserPr
 from infrastructure.repositories.sql_user_vocabulary_repository import SQLUserVocabularyRepository
 from infrastructure.repositories.sql_user_repository import SQLUserRepository
 from infrastructure.repositories.sql_review_repository import SQLReviewRepository
+from infrastructure.repositories.sql_user_example_repository import SQLUserExampleRepository
 
 from infrastructure.repositories.sql_vocabulary_word_repository import SQLVocabularyWordRepository
 from infrastructure.security.jwt_service import JWTService
@@ -74,6 +77,9 @@ def get_user_preference_repository(session=Depends(get_db)):
 
 def get_review_repository(session=Depends(get_db)):
     return SQLReviewRepository(session)
+
+def get_user_example_repository(session=Depends(get_db)):
+    return SQLUserExampleRepository(session)
 
 def get_user_preference_service(user_preference_repository=Depends(get_user_preference_repository)):
     return UserPreferenceService(user_preference_repository)
@@ -175,5 +181,10 @@ def get_vocabulary_word_service(
     vocabulary_word_repository: VocabularyWordRepository = Depends(get_vocabulary_repository)
 ) -> VocabularyWordService:
     return VocabularyWordService(vocabulary_word_repository=vocabulary_word_repository)
+
+def get_user_example_service(
+    user_example_repository: UserExampleRepository = Depends(get_user_example_repository)
+) -> UserExampleService:
+    return UserExampleService(user_example_repository=user_example_repository)
 
 

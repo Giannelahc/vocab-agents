@@ -5,8 +5,10 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 from application.enums.vocabulary_status import VocabularyStatus
 from application.services.supervisor_service import SupervisorService
 from application.services.vocabulary_word_service import VocabularyWordService
-from dependencies import get_current_user, get_supervisor_service, get_vocabulary_word_service
-from schemas.vocabulary import VocabularyRequest
+from application.services.user_example_service import UserExampleService
+from dependencies import get_current_user, get_supervisor_service, get_vocabulary_word_service, get_user_example_service
+from schemas.vocabulary import VocabularyRequest, ExampleRequest
+from api.mappers.vocabulary_mapper import VocabularyMapper, UserExampleMapper
 
 router = APIRouter()
 
@@ -26,7 +28,7 @@ async def create_word(
 
     return vocabulary
 
-@router.get("/")
+@router.get("")
 async def get_vocabulary_paginated_by_language(
     language_id: int | None = Query(None),
     page: int = Query(1, ge=1),
@@ -34,5 +36,16 @@ async def get_vocabulary_paginated_by_language(
     user_id: int = Depends(get_current_user),
     service: VocabularyWordService = Depends(get_vocabulary_word_service)
 ):
-    return await service.get_words_by_user(user_id, language_id, page, page_size)
+    vocabulary_list = await service.get_words_by_user(user_id, language_id, page, page_size)
+    return VocabularyMapper.to_list_response(vocabulary_list)
+
+@router.post("/{word_sense_id}/examples")
+async def register_user_examples(
+    user_examples: ExampleRequest,
+    word_sense_id: int,
+    user_id: int = Depends(get_current_user),
+    service: UserExampleService = Depends(get_user_example_service)
+):
+    examples = await service.save_examples(user_examples.examples, word_sense_id)
+    return [UserExampleMapper.to_response(example) for example in examples]
     
