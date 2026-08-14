@@ -8,10 +8,12 @@ from agents.example_agent import ExampleAgent
 from agents.grammar_agent import GrammarAgent
 from agents.exercise_agent import ExerciseAgent
 from agents.supervisor_agent import SupervisorAgent
+from agents.vocabulary_identification_agent import VocabularyIdentificationAgent
 from application.services.supervisor_service import SupervisorService
 from application.services.vocabulary_word_service import VocabularyWordService
 from application.services.user_example_service import UserExampleService
 from application.services.review_service import ReviewService
+from application.services.vocabulary_identifier_service import VocabularyIdentifierService
 from infrastructure.persistence.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -44,6 +46,7 @@ from prompts.example_prompt import ExamplePromptBuilder
 from prompts.grammar_prompt import GrammarPromptBuilder
 from prompts.pos_tagger_prompt import PosTaggerPromptBuilder
 from prompts.exercise_prompt import ExercisePromptBuilder
+from prompts.vocabulary_identification_prompt import VocabularyIdentificationPromptBuilder
 from application.services.user_preference import UserPreferenceService
 
 async def get_user_repository(session=Depends(get_db)):
@@ -102,6 +105,9 @@ def get_example_service():
 def get_exercise_service():
     return ExercisePromptBuilder(llm_client=get_llm_client())
 
+def get_vocabulary_identification_builder():
+    return VocabularyIdentificationPromptBuilder(llm_client=get_llm_client())
+
 def get_definition_agent():
     return DefinitionAgent(dictionary_service=get_definition_prompt_builder())
 
@@ -113,6 +119,9 @@ def get_example_agent():
 
 def get_exercise_agent():
     return ExerciseAgent(exercise_service=get_exercise_service())
+
+def get_vocabulary_identification_agent():
+    return VocabularyIdentificationAgent(vocabulary_identify_builder=get_vocabulary_identification_builder())
 
 def get_pos_tagger_service():
     return PosTaggerPromptBuilder(llm_client=get_llm_client())
@@ -187,4 +196,11 @@ def get_user_example_service(
 ) -> UserExampleService:
     return UserExampleService(user_example_repository=user_example_repository)
 
-
+def get_vocabulary_identification_service(
+        vocabulary_identification_agent: VocabularyIdentificationAgent = Depends(get_vocabulary_identification_agent),
+        language_repository: LanguageRepository = Depends(get_language_repository),
+        vocabulary_word_repository: VocabularyWordRepository = Depends(get_vocabulary_repository)
+) -> VocabularyIdentifierService:
+    return VocabularyIdentifierService(vocabulary_word_repository= vocabulary_word_repository,
+                                       language_repository= language_repository,
+                                       identification_agent= vocabulary_identification_agent)

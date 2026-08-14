@@ -145,3 +145,27 @@ class SQLVocabularyWordRepository(VocabularyWordRepository):
         models = result.scalars().all()
 
         return [VocabularyWordMapper.to_entity(model) for model in models]
+    
+
+    async def find_existing_words(self, user_id: int, language_id: int, words: list[str]) -> set[str]:
+
+        stmt = (
+            select(VocabularyWordModel.word)
+            .join(
+                UserVocabularyModel,
+                UserVocabularyModel.vocabulary_word_id
+                == VocabularyWordModel.id
+            )
+            .where(
+                UserVocabularyModel.user_id == user_id,
+                VocabularyWordModel.language_id == language_id,
+                VocabularyWordModel.word.in_(words)
+            )
+        )
+
+        result = await self.session.execute(stmt)
+
+        return {
+            word.strip().lower()
+            for word in result.scalars().all()
+        }

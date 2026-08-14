@@ -37,3 +37,13 @@ class VocabularyWordResponse(BaseModel):
     language_id: int
     status: str
     senses: list[WordSenseResponse]
+
+class VocabularyCandidateResponse(BaseModel):
+    text: str
+    type: str
+    base_form: str
+    already_registered: bool
+
+class VocabularyIdentifyRequest(BaseModel):
+    text: str
+    language_id: int

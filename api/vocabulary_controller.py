@@ -6,9 +6,11 @@ from application.enums.vocabulary_status import VocabularyStatus
 from application.services.supervisor_service import SupervisorService
 from application.services.vocabulary_word_service import VocabularyWordService
 from application.services.user_example_service import UserExampleService
-from dependencies import get_current_user, get_supervisor_service, get_vocabulary_word_service, get_user_example_service
-from schemas.vocabulary import VocabularyRequest, ExampleRequest
+from application.services.vocabulary_identifier_service import VocabularyIdentifierService
+from dependencies import get_current_user, get_supervisor_service, get_vocabulary_word_service, get_user_example_service, get_vocabulary_identification_service
+from schemas.vocabulary import VocabularyRequest, ExampleRequest, VocabularyIdentifyRequest
 from api.mappers.vocabulary_mapper import VocabularyMapper, UserExampleMapper
+from api.mappers.vocabulary_candidate_mapper import VocabularyCandidateMapper
 
 router = APIRouter()
 
@@ -49,4 +51,23 @@ async def register_user_examples(
 ):
     examples = await service.save_examples(user_examples.examples, word_sense_id)
     return [UserExampleMapper.to_response(example) for example in examples]
-    
+
+
+@router.post("/identify")
+async def identify_vocabulary(
+    request: VocabularyIdentifyRequest,
+    user_id: int = Depends(get_current_user),
+    service: VocabularyIdentifierService = Depends(
+        get_vocabulary_identification_service
+    )
+):
+    candidates = await service.identify(
+        text=request.text,
+        language_id=request.language_id,
+        user_id=user_id
+    )
+
+    return [
+        VocabularyCandidateMapper.to_response(candidate)
+        for candidate in candidates
+    ]
