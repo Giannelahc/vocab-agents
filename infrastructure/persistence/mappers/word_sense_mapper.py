@@ -17,6 +17,7 @@ class WordSenseMapper:
             definition=model.definition,
             translations=model.translations,
             conjugation=model.conjugation,
+            properties=model.properties,
             gender=model.gender,
             examples=[
                 ExampleMapper.to_entity(e)
@@ -41,6 +42,7 @@ class WordSenseMapper:
             definition=entity.definition,
             translations=entity.translations,
             conjugation=entity.conjugation,
+            properties=entity.properties,
             gender=entity.gender
         )
 

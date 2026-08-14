@@ -27,6 +27,7 @@ class VocabularyMapper:
             grammar_type=data["part_of_speech"],
             definition=data["definition"],
             conjugation=data.get("conjugation"),
+            properties=data.get("properties"),
             translations=data.get("translation"),
             gender=data.get("gender")
         )

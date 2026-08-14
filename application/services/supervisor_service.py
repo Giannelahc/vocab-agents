@@ -36,21 +36,24 @@ class SupervisorService:
         self.vocabulary_mapper = vocabulary_mapper
         self.user_vocabulary_repository = user_vocabulary_repository
 
-    async def register_word(self, word: str, language_id: int, user_id: int):
+    async def register_word(self, word: str, language_id: int, user_id: int, regenerate: bool):
         existing = await self.vocabulary_repository.find_by_word_and_language(word, language_id)
 
         if existing:
             relation = await self.user_vocabulary_repository.find(user_id, existing.id)
-
+            review = None
             if relation is None:
-                await self.user_vocabulary_repository.save(
+                relation = await self.user_vocabulary_repository.save(
                     UserVocabulary(
                         user_id=user_id,
                         vocabulary_word_id=existing.id
                     )
                 )
+                review = await self.review_service.register_review(relation.id)
+            elif regenerate:
+                review = await self.review_service.get_pending_review_by_user_vocabulary_id(relation.id)
 
-            return existing
+            return existing, review
 
         vocabulary = VocabularyWord(
             id=None,

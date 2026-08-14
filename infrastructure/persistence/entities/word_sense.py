@@ -17,6 +17,7 @@ class WordSenseModel(Base):
     translations = Column(JSONB, nullable=True)
     gender = Column(JSONB, nullable=True)
     conjugation = Column(JSONB, nullable=True)
+    properties = Column(JSONB, nullable=True)
 
     word_id = Column(
         Integer,

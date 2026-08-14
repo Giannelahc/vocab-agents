@@ -13,7 +13,7 @@ class ExamplePromptBuilder:
         return await self.get_examples_from_serapi_search(word, tag, language_detected)
     
     async def get_examples_from_serapi_search(self, word: str, tag: str, language_detected: str):
-        query = f'{word} examples in {language_detected}'
+        query = f'{word} as {tag} examples in {language_detected}'
         try:
             examples = await self.serapi_client.search(query)
             return await self.process_examples(word, tag, examples, language_detected)
@@ -23,7 +23,7 @@ class ExamplePromptBuilder:
         return None
 
     async def process_examples(self, word,  tag: str, examples, language_detected):
-        clean_write = f"""Clean and rewrite 3 examples the word '{word}' as '{tag}' base on these examples
+        clean_write = f"""Clean and rewrite 3 examples of the word '{word}' as '{tag}' base on these examples
                         {examples}. """
         prompt = f""" {clean_write}. Everything must be in {language_detected}, 
         filter the examples you consider most appropiates and important and all 

@@ -13,6 +13,7 @@ class WordSense:
     id: Optional[int] = None
     translations: Optional[dict[str, list[str]]] = None
     conjugation: Optional[dict] = None
+    properties: Optional[dict] = None
     gender: Optional[str] = None
     examples: list[Example] = field(default_factory=list)
     synonyms: list[Synonym] = field(default_factory=list)

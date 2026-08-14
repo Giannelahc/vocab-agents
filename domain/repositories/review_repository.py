@@ -36,3 +36,7 @@ class ReviewRepository(ABC):
     async def find_by_id(self, review_id) -> Review:
         pass 
 
+    @abstractmethod
+    async def find_by_user_vocabulary_id_and_status(self, user_vocabulary_id: int, status: ReviewStatus) -> Review:
+        pass
+

@@ -166,6 +166,9 @@ class ReviewService:
         self.review_mapper.from_analysis(exercises, GenerationStatus.READY, exercise_type, review)
         await self.review_repository.update_exercises(review)
 
+    async def get_pending_review_by_user_vocabulary_id(self, user_vocabulary_id: int) -> Review:
+        return await self.review_repository.find_by_user_vocabulary_id_and_status(user_vocabulary_id, ReviewStatus.PENDING)
+
 
     def determine_correct_answer(self, exercise_type: ExerciseType, 
                                        word_sense: WordSense, 

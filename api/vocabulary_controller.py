@@ -21,7 +21,8 @@ async def create_word(
     user_id: int = Depends(get_current_user),
     service: SupervisorService = Depends(get_supervisor_service)
 ):
-    vocabulary, review = await service.register_word(word=request.word, language_id=request.language_id, user_id=user_id)
+    vocabulary, review = await service.register_word(word=request.word, language_id=request.language_id, 
+                                                     user_id=user_id, regenerate=regenerate)
 
     if regenerate or vocabulary.status == VocabularyStatus.FAILED or vocabulary.status == VocabularyStatus.PENDING:
         background_tasks.add_task(service.process_word, user_id, vocabulary.id, review)

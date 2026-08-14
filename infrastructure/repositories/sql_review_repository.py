@@ -102,7 +102,7 @@ class SQLReviewRepository(ReviewRepository):
         model.generation_status = PersistenceGenerationStatus(status.value)
         await self.session.flush()
 
-    async def find_by_id(self, review_id: int) -> Review:
+    async def find_by_id(self, review_id: int) -> Review | None:
         stmt = (select(ReviewModel)
                 .options(selectinload(ReviewModel.exercises))
                 .where(ReviewModel.id == review_id)
@@ -113,5 +113,14 @@ class SQLReviewRepository(ReviewRepository):
             return None
         return ReviewMapper.to_entity(model)
 
-
-
+    async def find_by_user_vocabulary_id_and_status(self, user_vocabulary_id: int, status: ReviewStatus) -> Review | None:
+        stmt = (select(ReviewModel)
+                .options(selectinload(ReviewModel.exercises))
+                .where(ReviewModel.user_vocabulary_id == user_vocabulary_id,
+                       ReviewModel.status == PersistenceReviewStatus(status.value))
+                )
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        if model is None:
+            return None
+        return ReviewMapper.to_entity(model)
