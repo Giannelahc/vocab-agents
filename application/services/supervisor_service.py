@@ -15,6 +15,7 @@ from domain.repositories.language_repository import LanguageRepository
 from application.services.user_preference import UserPreferenceService
 from application.services.review_service import ReviewService
 from domain.models.user_vocabulary import UserVocabulary
+from domain.models.vocabulary_word_summary import VocabularyWordSummary
 
 
 class SupervisorService:
@@ -76,7 +77,7 @@ class SupervisorService:
 
         review = await self.review_service.register_review(user_vocabulary.id)
 
-        return saved_word, review
+        return VocabularyMapper.to_word_summary(saved_word), review
 
     async def process_word(self, user_id: int, vocabulary_id: int, review: Review):
         vocabulary = await self.vocabulary_repository.find_by_id(vocabulary_id)

@@ -1,5 +1,6 @@
 
 from domain.models.vocabulary_word import VocabularyWord
+from domain.models.vocabulary_word_summary import VocabularyWordSummary
 from domain.models.word_sense import WordSense
 from domain.models.example import Example
 from domain.models.synonym import Synonym
@@ -8,25 +9,48 @@ from schemas.vocabulary import (VocabularyWordResponse,
                                 WordSenseResponse, 
                                 ExampleResponse,
                                 UserExampleResponse,
-                                SynonymResponse)
+                                SynonymResponse,
+                                VocabularyListResponse,
+                                VocabularyWordSummaryResponse)
+from api.mappers.user_preference_mapper import LanguageMapper
 
 
 class VocabularyMapper:
 
     @staticmethod
-    def to_list_response(entity_list: list[VocabularyWord]) -> list[VocabularyWordResponse]:
-        word_list = [
-                VocabularyMapper.to_response(word)
+    def to_vocabulary_list_response(
+        entity_list: list[VocabularyWordSummary],
+        page: int,
+        page_size: int,
+        total: int
+    ) -> VocabularyListResponse:
+        return VocabularyListResponse(
+            page= page,
+            page_size= page_size,
+            total= total,
+            items= [
+                VocabularyMapper.to_vocabulary_word_summary_response(word)
                 for word in entity_list
-                ]
-        return word_list
+            ],
+        )
+
+    @staticmethod
+    def to_vocabulary_word_summary_response(entity: VocabularyWordSummary) -> VocabularyWordSummaryResponse:
+        return VocabularyWordSummaryResponse(
+            id=entity.id,
+            word=entity.word,
+            language=LanguageMapper.to_request(entity.language),
+            status=entity.status.value,
+            senses=entity.senses
+        )
+
 
     @staticmethod
     def to_response(entity: VocabularyWord) -> VocabularyWordResponse:
         review_response = VocabularyWordResponse(
             id=entity.id,
             word=entity.word,
-            language_id=entity.language_id,
+            language=LanguageMapper.to_request(entity.language),
             status=entity.status.value,
             senses=[
                 WordSenseMapper.to_response(sense) 
@@ -46,6 +70,7 @@ class WordSenseMapper:
             definition=entity.definition,
             translations=entity.translations,
             conjugation=entity.conjugation,
+            properties=entity.properties,
             gender=entity.gender,
             examples=[
                     ExampleMapper.to_response(example) 

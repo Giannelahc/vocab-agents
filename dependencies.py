@@ -2,6 +2,7 @@
 
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
+import jwt
 
 from agents.definition_agent import DefinitionAgent
 from agents.example_agent import ExampleAgent
@@ -14,6 +15,7 @@ from application.services.vocabulary_word_service import VocabularyWordService
 from application.services.user_example_service import UserExampleService
 from application.services.review_service import ReviewService
 from application.services.vocabulary_identifier_service import VocabularyIdentifierService
+from application.services.user_service import UserService
 from infrastructure.persistence.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -48,6 +50,7 @@ from prompts.pos_tagger_prompt import PosTaggerPromptBuilder
 from prompts.exercise_prompt import ExercisePromptBuilder
 from prompts.vocabulary_identification_prompt import VocabularyIdentificationPromptBuilder
 from application.services.user_preference import UserPreferenceService
+from application.services.language_service import LanguageService
 
 async def get_user_repository(session=Depends(get_db)):
     return SQLUserRepository(session)
@@ -86,6 +89,11 @@ def get_user_example_repository(session=Depends(get_db)):
 
 def get_user_preference_service(user_preference_repository=Depends(get_user_preference_repository)):
     return UserPreferenceService(user_preference_repository)
+
+def get_use_service(user_preference_repository=Depends(get_user_preference_repository),
+                    user_repository=Depends(get_user_repository)):
+    return UserService(user_preference_repository, user_repository)
+
 
 def get_definition_prompt_builder():
     return DefinitionPromptBuilder(
@@ -176,12 +184,20 @@ oauth2_scheme = OAuth2PasswordBearer(
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
 
-    user_id = get_jwt_service().decode_token(token)
+    try:
+        user_id = get_jwt_service().decode_token(token)
+    except (jwt.PyJWTError, ValueError, TypeError):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
 
     if user_id is None:
         raise HTTPException(
             status_code=401,
-            detail="Invalid token"
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"}
         )
 
     return user_id
@@ -204,3 +220,8 @@ def get_vocabulary_identification_service(
     return VocabularyIdentifierService(vocabulary_word_repository= vocabulary_word_repository,
                                        language_repository= language_repository,
                                        identification_agent= vocabulary_identification_agent)
+
+def get_language_service(
+    language_repository: LanguageRepository = Depends(get_language_repository)
+) -> LanguageService:
+    return LanguageService(language_repository=language_repository)

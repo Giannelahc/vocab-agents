@@ -50,4 +50,11 @@ class SQLLanguageRepository(LanguageRepository):
 
         return LanguageMapper.to_entity(model)
 
+    async def find_all(self) -> list[Language]:
+        stmt = select(LanguageModel)
+
+        result = await self.session.execute(stmt)
+
+        model = result.scalars().all()
+        return [LanguageMapper.to_entity(lang) for lang in model]
     

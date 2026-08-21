@@ -29,18 +29,29 @@ async def create_word(
     if regenerate or vocabulary.status == VocabularyStatus.FAILED or vocabulary.status == VocabularyStatus.PENDING:
         background_tasks.add_task(service.process_word, user_id, vocabulary.id, review)
 
-    return vocabulary
+    return VocabularyMapper.to_vocabulary_word_summary_response(vocabulary)
 
 @router.get("")
 async def get_vocabulary_paginated_by_language(
     language_id: int | None = Query(None),
+    search: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
     user_id: int = Depends(get_current_user),
     service: VocabularyWordService = Depends(get_vocabulary_word_service)
 ):
-    vocabulary_list = await service.get_words_by_user(user_id, language_id, page, page_size)
-    return VocabularyMapper.to_list_response(vocabulary_list)
+    vocabulary_list, total = await service.get_words_by_user(user_id, language_id, page, page_size, search)
+    return VocabularyMapper.to_vocabulary_list_response(vocabulary_list, page, page_size, total)
+
+@router.get("/{word_id}")
+async def get_vocabulary_by_id(
+    word_id: int,
+    user_id: int = Depends(get_current_user),
+    service: VocabularyWordService = Depends(get_vocabulary_word_service)
+):
+    vocabulary_word = await service.get_word_by_id(word_id)
+    return VocabularyMapper.to_response(vocabulary_word)
+
 
 @router.post("/{word_sense_id}/examples")
 async def register_user_examples(

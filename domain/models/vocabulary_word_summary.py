@@ -1,16 +1,15 @@
-#domain/models/vocabulary_word.py
+#domain/models/vocabulary_word_summary.py
 from dataclasses import dataclass, field
 from typing import Optional
-from domain.models.word_sense import WordSense
 from domain.models.language import Language
 from application.enums.vocabulary_status import VocabularyStatus
     
 @dataclass
-class VocabularyWord:
+class VocabularyWordSummary:
 
     word: str
     language_id: int
+    senses: int = 0
     language: Optional[Language] = None
     status: VocabularyStatus = VocabularyStatus.PENDING
-    senses: list[WordSense] = field(default_factory=list)
     id: Optional[int] = None

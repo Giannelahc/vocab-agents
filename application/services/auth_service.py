@@ -17,7 +17,7 @@ class AuthService:
         self.repository = repository
         self.jwt_service = jwt_service
 
-    async def register(self, name: str, lastname: str, username: str, email: str, password: str):
+    async def register(self, name: str, lastname: str, username: str, email: str, password: str) -> User:
 
         existing = await self.repository.find_by_email(email)
 

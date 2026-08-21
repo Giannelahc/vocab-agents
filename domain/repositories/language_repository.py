@@ -22,4 +22,8 @@ class LanguageRepository(ABC):
     async def save_all(self, languages: list[Language]) -> list[Language]:
         pass
 
+    @abstractmethod
+    async def find_all(self) -> list[Language]:
+        pass 
+
     

@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 
 from domain.models.vocabulary_word import VocabularyWord
+from domain.models.vocabulary_word_summary import VocabularyWordSummary
 from application.enums.vocabulary_status import VocabularyStatus
 
 
@@ -20,7 +21,7 @@ class VocabularyWordRepository(ABC):
         pass
 
     @abstractmethod
-    async def find_by_word_and_language(self, word: str, language_id: int) -> VocabularyWord | None: 
+    async def find_by_word_and_language(self, word: str, language_id: int) -> VocabularyWordSummary | None: 
         pass
 
     @abstractmethod
@@ -28,7 +29,7 @@ class VocabularyWordRepository(ABC):
         pass
 
     @abstractmethod
-    async def find_by_user_id(self, user_id: int, language_id: int, page: int, page_size: int) -> list[VocabularyWord]:
+    async def find_by_user_id(self, user_id: int, language_id: int, page: int, page_size: int, search: str) -> tuple[list[VocabularyWordSummary], int]:
         pass
 
     @abstractmethod

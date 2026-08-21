@@ -1,7 +1,8 @@
 
 from domain.models.user_learning_language import UserLearningLanguage
 from domain.models.user_preference import UserPreference
-from schemas.preference import UserPreferenceDto
+from domain.models.language import Language
+from schemas.preference import UserPreferenceDto, LanguageDto
 
 
 class UserPreferenceMapper:
@@ -24,9 +25,9 @@ class UserPreferenceMapper:
 
         model = UserPreferenceDto(
             id=entity.id,
-            native_language_id=entity.native_language_id,
+            native_language=LanguageMapper.to_request(entity.native_language),
             learning_languages=[
-                UserLearningLanguageMapper.to_request(language) 
+                LanguageMapper.to_request(language.language) 
                 for language in entity.learning_languages
                 ]
         )
@@ -43,7 +44,12 @@ class UserLearningLanguageMapper:
             language_id=language_id
         )
 
-    @staticmethod
-    def to_request(entity: UserLearningLanguage) -> int:
+class LanguageMapper:
 
-        return entity.language_id
+    @staticmethod
+    def to_request(entity: Language | None) -> LanguageDto | None:
+        if entity is None:
+            return None
+
+        return LanguageDto(id=entity.id, code=entity.code, name=entity.name)
+    

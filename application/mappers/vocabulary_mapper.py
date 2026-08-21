@@ -1,5 +1,6 @@
 
 from domain.models.vocabulary_word import VocabularyWord
+from domain.models.vocabulary_word_summary import VocabularyWordSummary
 from domain.models.word_sense import WordSense
 from domain.models.example import Example
 from domain.models.synonym import Synonym
@@ -52,3 +53,11 @@ class VocabularyMapper:
 
 
         return sense
+
+    def to_word_summary(word: VocabularyWord) -> VocabularyWordSummary:
+        return VocabularyWordSummary(
+            id=word.id,
+            word=word.word,
+            language_id=word.language_id,
+            status=word.status
+        )

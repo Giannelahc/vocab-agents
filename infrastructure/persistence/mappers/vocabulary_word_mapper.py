@@ -15,6 +15,7 @@ class VocabularyWordMapper:
             id=model.id,
             word=model.word,
             language_id=model.language_id,
+            language= model.language,
             status=AppVocabularyStatus(model.status.value),
             senses=[
                 WordSenseMapper.to_entity(sense)

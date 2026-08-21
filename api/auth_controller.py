@@ -15,7 +15,7 @@ async def register(
 
     try:
 
-        await auth_service.register(
+        user = await auth_service.register(
             request.name,
             request.lastname,
             request.username,
@@ -24,7 +24,8 @@ async def register(
         )
 
         return {
-            "message": "User created"
+            "id": user.id,
+            "email": user.email
         }
 
     except ValueError as ex:

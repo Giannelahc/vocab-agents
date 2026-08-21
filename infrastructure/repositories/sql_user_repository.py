@@ -62,3 +62,17 @@ class SQLUserRepository(UserRepository):
             return None
 
         return UserMapper.to_entity(model)
+
+    async def find_by_id(self, user_id: int) -> User | None:
+        stmt = select(UserModel).where(
+            UserModel.id == user_id
+        )
+
+        result = await self.session.execute(stmt)
+
+        model = result.scalar_one_or_none()
+
+        if model is None:
+            return None
+
+        return UserMapper.to_entity(model)
