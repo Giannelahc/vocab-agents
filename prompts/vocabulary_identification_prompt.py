@@ -67,43 +67,96 @@ class VocabularyIdentificationPromptBuilder:
         7. Preserve the original form that appears in the text in the
         "text" field.
 
+        PHRASAL VERBS AND MULTI-WORD VERBS:
+
+        8. Identify phrasal verbs and other established multi-word verbs as a
+        single vocabulary unit when the combination has a conventional meaning
+        or grammatical behavior that differs from the standalone verb.
+
+        9. A phrasal verb typically consists of a verb combined with a particle
+        such as:
+        - up
+        - down
+        - away
+        - out
+        - off
+        - on
+        - in
+        - over
+        - back
+        - through
+
+        10. If a verb + particle forms a recognized phrasal verb in the context,
+        return the complete phrasal verb rather than the standalone verb.
+
+        Examples:
+        - "They dragged me away." → "drag away"
+        - "She gave up." → "give up"
+        - "He turned off the light." → "turn off"
+        - "Please pick it up." → "pick up"
+        - "They carried on talking." → "carry on"
+
+        11. Preserve the complete expression in "text" and normalize the verbal
+        component in "base_form".
+
+        Example:
+        "they dragged me away" →
+        text: "dragged me away"
+        type: "verbal_expression"
+        base_form: "drag away"
+
+        12. Do NOT treat every verb followed by a particle as a phrasal verb.
+        The combination must be a recognized lexical construction in the language
+        and must function as a meaningful vocabulary unit.
+
+        13. If the particle is used literally and independently rather than as
+        part of a recognized multi-word verb, return the verb separately.
+
+        Example:
+        "She walked away from the table." →
+        "walk" may be returned as a verb if "walk away" is not functioning as
+        the intended vocabulary unit in context.
+
+        14. When a recognized phrasal verb is present, prefer the complete
+        phrasal verb over returning the standalone verb alone.
+
         VERBAL EXPRESSIONS:
 
-        8. A verbal_expression must represent a recognized or conventional
+        15. A verbal_expression must represent a recognized or conventional
         lexical unit whose meaning or grammatical behavior depends on
         the combination of its components.
 
-        9. Only identify a verbal_expression when the combination is a
+        16. Only identify a verbal_expression when the combination is a
         genuine lexical construction in the language.
 
-        10. Do NOT classify words as a verbal_expression merely because:
+        17. Do NOT classify words as a verbal_expression merely because:
             - a verb is followed by another word
             - a verb is followed by an adjective
             - a verb is followed by a noun
             - a verb is followed by a prepositional phrase
             - two words frequently occur near each other
 
-        11. For example, these are valid verbal expressions:
+        18. For example, these are valid verbal expressions:
             - "se rendre compte de"
             - "take care of"
             - "look forward to"
             - "give up"
             - "make up one's mind"
 
-        12. These should NOT automatically be classified as verbal expressions:
+        19. These should NOT automatically be classified as verbal expressions:
             - "eat quickly"
             - "feel happy"
             - "run fast"
             - "dwell bound"
 
-        13. If a verb and another word can naturally function as separate
+        20. If a verb and another word can naturally function as separate
             vocabulary units, return them separately unless there is strong
             evidence that they form a fixed lexical expression.
 
-        14. When uncertain whether several words form a verbal_expression,
+        21. When uncertain whether several words form a verbal_expression,
             prefer separate candidates rather than creating a verbal_expression.
 
-        15. If a verbal expression contains a conjugated verb, preserve the
+        22. If a verbal expression contains a conjugated verb, preserve the
             complete expression in "text", but normalize the verbal component
             when possible.
 
@@ -114,28 +167,28 @@ class VocabularyIdentificationPromptBuilder:
 
         NOUNS, ADJECTIVES AND ADVERBS:
 
-        16. Identify nouns, adjectives and adverbs when they represent
+        23. Identify nouns, adjectives and adverbs when they represent
             meaningful vocabulary candidates.
 
-        17. Preserve the original word in "text".
+        24. Preserve the original word in "text".
 
-        18. Normalize inflected forms to their dictionary/base form when
+        25. Normalize inflected forms to their dictionary/base form when
             possible.
 
-        19. Do not attempt to determine all possible grammatical categories
+        26. Do not attempt to determine all possible grammatical categories
             of a word. The type returned here describes its likely use
             in the given context.
 
         AMBIGUOUS WORDS:
 
-        20. If a word could belong to several grammatical categories,
+        27. If a word could belong to several grammatical categories,
             choose the category that best fits its use in the provided
             context.
 
-        21. Do not invent additional grammatical categories or expressions
+        28. Do not invent additional grammatical categories or expressions
             that are not supported by the context.
 
-        22. If the grammatical category cannot be determined reliably,
+        29. If the grammatical category cannot be determined reliably,
             use "other" rather than guessing.
 
         CANDIDATE TYPES:

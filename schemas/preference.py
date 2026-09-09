@@ -8,5 +8,10 @@ class LanguageDto(BaseModel):
 
 class UserPreferenceDto(BaseModel):
     id: int | None = None
-    native_language: LanguageDto
-    learning_languages: list[LanguageDto]
+    native_language: LanguageDto | None = None
+    learning_languages: list[LanguageDto] = []
+
+class UserPreferenceRequest(BaseModel):
+    id: int | None = None
+    native_language_id: int
+    learning_languages_ids: list[int]

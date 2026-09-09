@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from application.enums.review_status import ReviewStatus
 from application.enums.generation_status import GenerationStatus
 from domain.models.review import Review
+from domain.models.review_summary import ReviewSummary
+from domain.models.review_statistics import ReviewStatistics
 
 
 class ReviewRepository(ABC):
@@ -13,7 +15,7 @@ class ReviewRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_reviews(self, user_id: int, status: ReviewStatus, up_to_now: bool) -> list[Review]:
+    async def get_reviews(self, user_id: int, status: ReviewStatus, up_to_now: bool, page: int = 1, page_size: int = 50) -> tuple[list[ReviewSummary], int]:
         pass
 
     @abstractmethod
@@ -40,3 +42,6 @@ class ReviewRepository(ABC):
     async def find_by_user_vocabulary_id_and_status(self, user_vocabulary_id: int, status: ReviewStatus) -> Review:
         pass
 
+    @abstractmethod
+    async def get_statistics(self, user_id: int) -> ReviewStatistics:
+        pass

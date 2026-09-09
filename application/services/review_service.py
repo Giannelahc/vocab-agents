@@ -10,14 +10,15 @@ from domain.repositories.user_vocabulary_repository import UserVocabularyReposit
 from domain.repositories.vocabulary_word_repository import VocabularyWordRepository
 from domain.repositories.language_repository import LanguageRepository
 from application.enums.exercise_type import ExerciseType
-from domain.models.vocabulary_word import VocabularyWord
-from domain.models.user_vocabulary import UserVocabulary
+from domain.models.review_statistics import ReviewStatistics
+from domain.models.review_home import ReviewHome
 from application.services.user_preference import UserPreferenceService
 from application.services.review_scheduler import ReviewScheduler
 from application.mappers.review_mapper import ReviewMapper
 from application.enums.review_status import ReviewStatus
 from application.enums.generation_status import GenerationStatus
 from domain.models.review import Review
+from domain.models.review_summary import ReviewSummary
 from domain.models.exercise_answer import ExerciseAnswer
 
 class ReviewService:
@@ -143,17 +144,20 @@ class ReviewService:
 
             await self.session.commit()
 
-            return review, next_review
+            return review, next_review, user_vocabulary.next_review_at
 
         except Exception:
             await self.session.rollback()
             raise
 
-    async def get_reviews(self, user_id: int, status: ReviewStatus | None = None):
-        return await self.review_repository.get_reviews(user_id, status, False)
+    async def get_reviews(self, user_id: int, page: int = 1, page_size: int = 50, status: ReviewStatus | None = None) -> tuple[list[ReviewSummary], int]:
+        return await self.review_repository.get_reviews(user_id, status, False, page, page_size)
 
-    async def get_pending_reviews(self, user_id: int) -> list[Review]:
-        return await self.review_repository.get_reviews(user_id, ReviewStatus.PENDING, True)
+    async def get_review_detail_by_id(self, review_id: int) -> Review:
+        return await self.review_repository.find_by_id(review_id)
+
+    async def get_pending_reviews(self, user_id: int, page: int = 1, page_size: int = 50) -> tuple[list[ReviewSummary], int]:
+        return await self.review_repository.get_reviews(user_id, ReviewStatus.PENDING, True, page, page_size)
 
     async def get_failed_reviews(self, user_id: int) -> list[Review]:
         return await self.review_repository.get_failed_reviews(user_id)
@@ -169,6 +173,21 @@ class ReviewService:
     async def get_pending_review_by_user_vocabulary_id(self, user_vocabulary_id: int) -> Review:
         return await self.review_repository.find_by_user_vocabulary_id_and_status(user_vocabulary_id, ReviewStatus.PENDING)
 
+    async def get_home(self, user_id: int) -> ReviewHome:
+
+        statistics = await self.review_repository.get_statistics(
+            user_id
+        )
+
+        pending_reviews, _ = await self.get_pending_reviews(
+            user_id=user_id,
+            page_size=5
+        )
+
+        return ReviewHome(
+            statistics=statistics,
+            pending_reviews= pending_reviews
+        )
 
     def determine_correct_answer(self, exercise_type: ExerciseType, 
                                        word_sense: WordSense, 

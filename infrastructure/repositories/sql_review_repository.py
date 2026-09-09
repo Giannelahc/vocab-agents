@@ -1,13 +1,17 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from datetime import datetime, timezone
 
 from domain.models.review import Review
+from domain.models.review_summary import ReviewSummary
+from domain.models.review_statistics import ReviewStatistics
 from domain.repositories.review_repository import ReviewRepository
 from infrastructure.persistence.entities.review import ReviewModel
 from infrastructure.persistence.entities.user_vocabulary import UserVocabularyModel
+from infrastructure.persistence.entities.exercise import ExerciseModel
+from infrastructure.persistence.entities.vocabulary_word import VocabularyWordModel
 from infrastructure.persistence.mappers.review_mapper import ReviewMapper
 from infrastructure.persistence.mappers.exercise_mapper import ExerciseMapper
 from infrastructure.persistence.enums.review_status import ReviewStatus as PersistenceReviewStatus
@@ -28,23 +32,101 @@ class SQLReviewRepository(ReviewRepository):
         review.id = model.id
         return review
 
-    async def get_reviews(self, user_id: int, status: ReviewStatus, up_to_now: bool) -> list[Review]:
-        stmt = (select(ReviewModel)
-                .join(UserVocabularyModel)
-                .options(selectinload(ReviewModel.exercises))
-                .where(UserVocabularyModel.user_id == user_id))
-        
+    async def get_reviews(
+        self,
+        user_id: int,
+        status: ReviewStatus | None,
+        up_to_now: bool,
+        page: int = 1,
+        page_size: int = 50
+    ) -> tuple[list[ReviewSummary], int]:
+
+        exercise_count = (
+            select(func.count(ExerciseModel.id))
+            .where(
+                ExerciseModel.review_id == ReviewModel.id
+            )
+            .correlate(ReviewModel)
+            .scalar_subquery()
+        )
+
+        base_conditions = [
+            UserVocabularyModel.user_id == user_id
+        ]
+
         if up_to_now:
-            stmt = stmt.where(UserVocabularyModel.next_review_at <= datetime.now(timezone.utc))
+            base_conditions.append(
+                UserVocabularyModel.next_review_at
+                <= datetime.now(timezone.utc)
+            )
 
         if status:
-            stmt = stmt.where(ReviewModel.status == PersistenceReviewStatus(status.value))
+            base_conditions.append(
+                ReviewModel.status
+                == PersistenceReviewStatus(status.value)
+            )
+
+        # Total
+        count_stmt = (
+            select(func.count(ReviewModel.id))
+            .join(
+                UserVocabularyModel,
+                ReviewModel.user_vocabulary_id == UserVocabularyModel.id
+            )
+            .where(*base_conditions)
+        )
+
+        total = await self.session.scalar(count_stmt)
+
+        # Items
+        stmt = (
+            select(
+                ReviewModel,
+                UserVocabularyModel.review_level,
+                UserVocabularyModel.next_review_at,
+                VocabularyWordModel.word,
+                exercise_count.label("exercise_count")
+            )
+            .join(
+                UserVocabularyModel,
+                ReviewModel.user_vocabulary_id
+                == UserVocabularyModel.id
+            )
+            .join(
+                VocabularyWordModel,
+                UserVocabularyModel.vocabulary_word_id
+                == VocabularyWordModel.id
+            )
+            .where(*base_conditions)
+            .order_by(
+                UserVocabularyModel.next_review_at.asc()
+            )
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
 
         result = await self.session.execute(stmt)
-        
-        models = result.scalars().all()
 
-        return [ReviewMapper.to_entity(model) for model in models]
+        models = result.all()
+
+        items = [
+            ReviewMapper.to_summary_entity(
+                review,
+                word,
+                review_level,
+                next_review_at,
+                exercise_count
+            )
+            for (
+                review,
+                review_level,
+                next_review_at,
+                word,
+                exercise_count
+            ) in models
+        ]
+
+        return items, total or 0
 
     async def get_failed_reviews(self, user_id: int) -> list[Review]:
         stmt = (select(ReviewModel)
@@ -124,3 +206,94 @@ class SQLReviewRepository(ReviewRepository):
         if model is None:
             return None
         return ReviewMapper.to_entity(model)
+
+    async def get_statistics(self, user_id: int) -> ReviewStatistics:
+
+        now = datetime.now(timezone.utc)
+
+        start_of_today = now.replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0
+        )
+
+        review_stats = (
+            select(
+                func.count(ReviewModel.id)
+                    .filter(
+                        ReviewModel.status == PersistenceReviewStatus.PASSED
+                    )
+                    .label("completed_reviews"),
+
+                func.count(ReviewModel.id)
+                    .filter(
+                        ReviewModel.status == PersistenceReviewStatus.FAILED
+                    )
+                    .label("failed_reviews")
+            )
+                    .select_from(ReviewModel)
+            .join(
+                UserVocabularyModel,
+                ReviewModel.user_vocabulary_id == UserVocabularyModel.id
+            )
+            .where(
+                UserVocabularyModel.user_id == user_id
+            )
+            .subquery()
+        )
+
+        vocabulary_stats = (
+            select(
+                func.count(ReviewModel.id)
+                    .filter(
+                        UserVocabularyModel.next_review_at <= now
+                    )
+                    .label("reviews_to_review"),
+                func.count(ReviewModel.id)
+                    .filter(
+                        UserVocabularyModel.next_review_at < start_of_today
+                    )
+                    .label("overdue_reviews")
+            )
+                    .select_from(ReviewModel)
+            .join(
+                UserVocabularyModel,
+                ReviewModel.user_vocabulary_id == UserVocabularyModel.id
+            )
+            .where(
+                UserVocabularyModel.user_id == user_id,
+                ReviewModel.status == PersistenceReviewStatus.PENDING
+            )
+            .subquery()
+        )
+
+        stmt = select(
+            review_stats.c.completed_reviews,
+            review_stats.c.failed_reviews,
+            vocabulary_stats.c.reviews_to_review,
+            vocabulary_stats.c.overdue_reviews
+        )
+
+        result = await self.session.execute(stmt)
+
+        row = result.one()
+
+        completed_reviews = row.completed_reviews or 0
+        failed_reviews = row.failed_reviews or 0
+
+        total_finished_reviews = (
+            completed_reviews + failed_reviews
+        )
+
+        success_rate = (
+            completed_reviews / total_finished_reviews * 100
+            if total_finished_reviews > 0
+            else 0.0
+        )
+
+        return ReviewStatistics(
+            success_rate=round(success_rate, 2),
+            reviews_to_review=row.reviews_to_review or 0,
+            overdue_reviews=row.overdue_reviews or 0
+        )

@@ -10,10 +10,6 @@ class UserPreferenceService:
         return await self.user_preference_repository.find_by_user_id(user_id)
 
     async def save_user_preferences(self, user_preference: UserPreference):
-        existing = await self.user_preference_repository.find_by_user_id(user_preference.user_id)
-        if existing is not None:
-            raise HTTPException(
-                status_code=409,
-                detail="User preference already exists for this user."
-            )
+        if user_preference.id is not None:
+            return await self.user_preference_repository.update(user_preference)
         return await self.user_preference_repository.save(user_preference)

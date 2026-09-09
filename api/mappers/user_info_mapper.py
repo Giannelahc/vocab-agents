@@ -15,7 +15,7 @@ class UserInfoMapper:
             lastname= entity.lastname,
             username= entity.username,
             email= entity.email,
-            preference=UserPreferenceMapper.to_dto(entity.preference),
+            preference=UserPreferenceMapper.to_dto(entity.preference) if entity.preference is not None else None,
             created_at=entity.created_at
         )
 

@@ -12,7 +12,7 @@ class UserLearningLanguageMapper:
         return UserLearningLanguage(
             id=model.id,
             language_id=model.language_id,
-            language=LanguageMapper.to_entity(model.language)
+            language=LanguageMapper.to_entity(model.language) if model.language is not None else None
         )
 
     @staticmethod
@@ -20,7 +20,7 @@ class UserLearningLanguageMapper:
 
         return UserLearningLanguageModel(
             id=entity.id,
-            language_id=entity.language_id,
-            language=LanguageMapper.to_model(entity.language)
+            language_id=entity.language_id
+            ##language=LanguageMapper.to_model(entity.language) if entity.language is not None else None
         )
 

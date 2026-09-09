@@ -8,7 +8,7 @@ from domain.models.language import Language
 class UserLearningLanguage:
 
     language_id: int
-    language: Language
+    language: Optional[Language] = None
 
     id: Optional[int] = None
     

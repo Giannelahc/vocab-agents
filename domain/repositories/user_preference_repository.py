@@ -11,5 +11,9 @@ class UserPreferenceRepository(ABC):
         pass
 
     @abstractmethod
+    async def update(self, user_preference: UserPreference) -> UserPreference:
+        pass
+
+    @abstractmethod
     async def find_by_user_id(self, user_id: int) -> UserPreference | None:
         pass

@@ -14,7 +14,7 @@ class UserPreferenceMapper:
             id=model.id,
             user_id=model.user_id,
             native_language_id=model.native_language_id,
-            native_language=LanguageMapper.to_entity(model.native_language),
+            native_language=LanguageMapper.to_entity(model.native_language) if model.native_language is not None else None,
             learning_languages=[
                 UserLearningLanguageMapper.to_entity(language)
                 for language in model.learning_languages
@@ -27,8 +27,8 @@ class UserPreferenceMapper:
         model = UserPreferenceModel(
             id=entity.id,
             user_id=entity.user_id,
-            native_language_id=entity.native_language_id,
-            native_language=LanguageMapper.to_model(entity.native_language)
+            native_language_id=entity.native_language_id
+            ##native_language=LanguageMapper.to_model(entity.native_language) if entity.native_language is not None else None
         )
 
         model.learning_languages = [

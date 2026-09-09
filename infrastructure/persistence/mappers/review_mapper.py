@@ -1,5 +1,6 @@
 
 from domain.models.review import Review
+from domain.models.review_summary import ReviewSummary
 from infrastructure.persistence.entities.review import ReviewModel
 from infrastructure.persistence.enums.review_status import ReviewStatus
 from infrastructure.persistence.enums.generation_status import GenerationStatus
@@ -9,6 +10,26 @@ from infrastructure.persistence.mappers.exercise_mapper import ExerciseMapper
 
 
 class ReviewMapper:
+
+    @staticmethod
+    def to_summary_entity(
+        model: ReviewModel,
+        word: str,
+        review_level: int,
+        next_review_at,
+        exercise_count: int
+    ) -> ReviewSummary:
+        return ReviewSummary(
+            id=model.id,
+            user_vocabulary_id=model.user_vocabulary_id,
+            completed_at=model.completed_at,
+            status=AppReviewStatus(model.status.value),
+            generation_status=AppGenerationStatus(model.generation_status.value),
+            word=word,
+            review_level=review_level,
+            next_review_at=next_review_at,
+            exercises=exercise_count
+        )
 
     @staticmethod
     def to_entity(model: ReviewModel) -> Review:

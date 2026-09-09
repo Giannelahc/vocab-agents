@@ -20,3 +20,28 @@ class ReviewResponse(BaseModel):
     user_vocabulary_id: int
     completed_at: datetime | None = None
     exercises: list[ExerciseResponse]
+
+class ReviewSummaryResponse(BaseModel):
+    id: int | None = None
+    status: str
+    user_vocabulary_id: int
+    word: str
+    review_level: int
+    next_review_at: datetime
+    completed_at: datetime | None = None
+    exercises: int = 0
+
+class ReviewSummaryPaginatedResponse(BaseModel):
+    page: int
+    page_size: int
+    total: int
+    items: list[ReviewSummaryResponse]
+
+class ReviewStatisticsResponse(BaseModel):
+    success_rate: float
+    reviews_to_review: int
+    overdue_reviews: int
+
+class ReviewHomeResponse(BaseModel):
+    statistics: ReviewStatisticsResponse
+    pending_reviews: list[ReviewSummaryResponse]
