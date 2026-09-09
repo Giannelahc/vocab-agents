@@ -54,3 +54,6 @@ class AuthService:
         )
 
         return token
+
+    async def logout(self, token: str) -> None:
+        self.jwt_service.revoke_token(token)
