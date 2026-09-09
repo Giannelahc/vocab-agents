@@ -22,4 +22,12 @@ class UserVocabularyRepository(ABC):
     async def find_by_id(self, user_vocabulary_id: int) -> UserVocabulary | None:
         pass
 
+    @abstractmethod
+    async def find_new_words_current_week(self) -> int:
+        pass
+
+    @abstractmethod
+    async def count_words_by_review_level_6(self) -> int:
+        pass
+
 

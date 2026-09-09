@@ -12,3 +12,11 @@ class UserInfoResponse(BaseModel):
     email: str
     created_at: datetime
     preference: UserPreferenceDto | None = None
+
+class HomeInfoResponse(BaseModel):
+    id: int
+    name: str
+    lastname: str
+    username: str
+    newWordsCurrentWeek: int
+    learnedWords: int

@@ -1,6 +1,8 @@
 
+from datetime import datetime, time, timedelta, timezone
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from domain.models.user_vocabulary import UserVocabulary
 from domain.models.vocabulary_word import VocabularyWord
@@ -63,5 +65,33 @@ class SQLUserVocabularyRepository(UserVocabularyRepository):
             return None
 
         return UserVocabularyMapper.to_entity(model)
+
+    async def find_new_words_current_week(self) -> int:
+        now = datetime.now(timezone.utc)
+        monday_date = now.date() - timedelta(days=now.weekday())
+        week_start = datetime.combine(monday_date, time.min, tzinfo=timezone.utc)
+        week_end = week_start + timedelta(days=7)
+
+        stmt = (
+            select(func.count())
+            .select_from(UserVocabularyModel)
+            .where(
+                UserVocabularyModel.created_at >= week_start,
+                UserVocabularyModel.created_at < week_end,
+            )
+        )
+
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
+    async def count_words_by_review_level_6(self) -> int:
+        stmt = (
+            select(func.count())
+            .select_from(UserVocabularyModel)
+            .where(UserVocabularyModel.review_level == 6)
+        )
+
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
 
     

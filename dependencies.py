@@ -10,6 +10,7 @@ from agents.grammar_agent import GrammarAgent
 from agents.exercise_agent import ExerciseAgent
 from agents.supervisor_agent import SupervisorAgent
 from agents.vocabulary_identification_agent import VocabularyIdentificationAgent
+from application.services.home_service import HomeService
 from application.services.supervisor_service import SupervisorService
 from application.services.vocabulary_word_service import VocabularyWordService
 from application.services.user_example_service import UserExampleService
@@ -93,6 +94,11 @@ def get_user_preference_service(user_preference_repository=Depends(get_user_pref
 def get_use_service(user_preference_repository=Depends(get_user_preference_repository),
                     user_repository=Depends(get_user_repository)):
     return UserService(user_preference_repository, user_repository)
+
+def get_home_service(user_vocabulary_repository=Depends(get_user_vocabulary_repository),
+                    user_repository=Depends(get_user_repository)):
+    return HomeService(user_repository, user_vocabulary_repository)
+
 
 
 def get_definition_prompt_builder():
