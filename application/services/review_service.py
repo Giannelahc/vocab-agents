@@ -4,6 +4,7 @@ import traceback
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from agents.exercise_agent import ExerciseAgent
+from domain.models.review_notification_summary import ReviewNotificationSummary
 from domain.models.word_sense import WordSense
 from domain.repositories.review_repository import ReviewRepository
 from domain.repositories.user_vocabulary_repository import UserVocabularyRepository
@@ -187,6 +188,15 @@ class ReviewService:
         return ReviewHome(
             statistics=statistics,
             pending_reviews= pending_reviews
+        )
+
+    async def get_notification_summary(self, user_id: int) -> ReviewNotificationSummary:
+        statistics = await self.review_repository.get_statistics(user_id)
+
+        return ReviewNotificationSummary(
+            today_reviews=statistics.reviews_to_review,
+            overdue_reviews=statistics.overdue_reviews,
+            total_pending=statistics.reviews_to_review + statistics.overdue_reviews
         )
 
     def determine_correct_answer(self, exercise_type: ExerciseType, 

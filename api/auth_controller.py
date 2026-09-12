@@ -1,11 +1,17 @@
 
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
 from dependencies import get_auth_service, oauth2_scheme
 from schemas.auth import LoginRequest, RegisterRequest, TokenResponse
 
 router = APIRouter()
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
 
 @router.post("/register")
 async def register(
@@ -40,13 +46,14 @@ async def login(request: LoginRequest, auth_service = Depends(get_auth_service))
 
     try:
 
-        token = await auth_service.login(
+        token_payload = await auth_service.login(
             request.email,
             request.password
         )
         return TokenResponse(
-            access_token=token,
-            token_type="Bearer"
+            access_token=token_payload["access_token"],
+            refresh_token=token_payload["refresh_token"],
+            token_type=token_payload["token_type"]
         )
 
     except ValueError as ex:
@@ -55,6 +62,19 @@ async def login(request: LoginRequest, auth_service = Depends(get_auth_service))
             status_code=401,
             detail=str(ex)
         )
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh(request: RefreshTokenRequest, auth_service = Depends(get_auth_service)):
+    try:
+        access_token = await auth_service.refresh(request.refresh_token)
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=request.refresh_token,
+            token_type="Bearer"
+        )
+    except Exception as ex:
+        raise HTTPException(status_code=401, detail=str(ex))
 
 
 @router.post("/logout")

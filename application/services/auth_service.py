@@ -49,11 +49,17 @@ class AuthService:
         ):
             raise ValueError("Invalid credentials")
 
-        token = self.jwt_service.create_access_token(
-            user.id
-        )
+        access_token = self.jwt_service.create_access_token(user.id)
+        refresh_token = self.jwt_service.create_refresh_token(user.id)
 
-        return token
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "Bearer"
+        }
+
+    async def refresh(self, refresh_token: str) -> str:
+        return self.jwt_service.refresh_access_token(refresh_token)
 
     async def logout(self, token: str) -> None:
         self.jwt_service.revoke_token(token)

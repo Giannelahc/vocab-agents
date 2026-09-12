@@ -45,3 +45,9 @@ class ReviewStatisticsResponse(BaseModel):
 class ReviewHomeResponse(BaseModel):
     statistics: ReviewStatisticsResponse
     pending_reviews: list[ReviewSummaryResponse]
+
+class ReviewNotificationSummaryResponse(BaseModel):
+    today_reviews: int
+    overdue_reviews: int
+    total_pending: int
+    user_name: str

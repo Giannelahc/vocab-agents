@@ -1,11 +1,13 @@
 
 from domain.models.review import Review
+from domain.models.review_notification_summary import ReviewNotificationSummary
 from domain.models.review_summary import ReviewSummary
 from domain.models.exercise import Exercise 
 from domain.models.review_home import ReviewHome 
 from domain.models.review_statistics import ReviewStatistics 
 from domain.models.exercise_answer import ExerciseAnswer
-from schemas.review import (ReviewResponse, ReviewSummaryResponse, 
+from domain.models.user_info import UserInfo
+from schemas.review import (ReviewNotificationSummaryResponse, ReviewResponse, ReviewSummaryResponse, 
                             ReviewSummaryPaginatedResponse, ExerciseResponse, 
                             ExerciseRequest, ReviewHomeResponse, ReviewStatisticsResponse)
 from application.enums.review_status import ReviewStatus
@@ -91,6 +93,15 @@ class ReviewMapper:
             next_review_at=entity.next_review_at,
             completed_at=entity.completed_at,
             exercises=entity.exercises
+        )
+
+    @staticmethod
+    def to_review_notification_summary_response(entity: ReviewNotificationSummary, user_info: UserInfo) -> ReviewNotificationSummaryResponse:
+        return ReviewNotificationSummaryResponse(
+            today_reviews=entity.today_reviews,
+            overdue_reviews=entity.overdue_reviews,
+            total_pending=entity.total_pending,
+            user_name=user_info.username
         )
 
     @staticmethod

@@ -2,7 +2,8 @@
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 
-from dependencies import get_current_user, get_review_service
+from application.services.user_service import UserService
+from dependencies import get_current_user, get_review_service, get_use_service
 from api.mappers.review_mapper import ReviewMapper
 from schemas.review import ExerciseRequest
 from application.services.review_service import ReviewService
@@ -80,6 +81,16 @@ async def get_review_home(
 ):
     review_statistics = await service.get_home(user_id)
     return ReviewMapper.to_review_home_response(review_statistics)
+
+@router.get("/notification-summary")
+async def get_notification_summary(
+    user_id: int = Depends(get_current_user),
+    service: ReviewService = Depends(get_review_service),
+    user_service: UserService = Depends(get_use_service)
+):
+    notification_summary = await service.get_notification_summary(user_id)
+    user_info = await user_service.get_user_info(user_id)
+    return ReviewMapper.to_review_notification_summary_response(notification_summary, user_info)
     
 @router.get("/{review_id}")
 async def get_review_by_id(

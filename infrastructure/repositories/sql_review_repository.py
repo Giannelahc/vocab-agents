@@ -2,7 +2,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from domain.models.review import Review
 from domain.models.review_summary import ReviewSummary
@@ -247,7 +247,8 @@ class SQLReviewRepository(ReviewRepository):
             select(
                 func.count(ReviewModel.id)
                     .filter(
-                        UserVocabularyModel.next_review_at <= now
+                        UserVocabularyModel.next_review_at >= start_of_today,
+                        UserVocabularyModel.next_review_at < start_of_today + timedelta(days=1),
                     )
                     .label("reviews_to_review"),
                 func.count(ReviewModel.id)
