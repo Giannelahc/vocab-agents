@@ -10,5 +10,5 @@ class HomeInfo:
     name: str
     lastname: str
     username: str
-    newWordsCurrentWeek: int
-    learnedWords: int
+    new_words_current_week: int
+    learned_words: int

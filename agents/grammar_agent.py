@@ -12,6 +12,6 @@ class GrammarAgent:
     async def process_verb(self, word, target_language):
         return await self.grammar_service.get_verb_grammar(word, target_language)
 
-    async def process_adjective(self, word, target_language):
-        return await self.grammar_service.get_adjective_grammar(word, target_language)
+    async def process_adjective(self, word, tag, target_language):
+        return await self.grammar_service.get_adjective_grammar(word, tag, target_language)
     

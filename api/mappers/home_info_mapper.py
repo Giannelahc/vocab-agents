@@ -15,8 +15,8 @@ class HomeInfoMapper:
             name=entity.name,
             lastname=entity.lastname,
             username=entity.username,
-            newWordsCurrentWeek=entity.newWordsCurrentWeek,
-            learnedWords=entity.learnedWords
+            new_words_current_week=entity.new_words_current_week,
+            learned_words=entity.learned_words
         )
 
         return model

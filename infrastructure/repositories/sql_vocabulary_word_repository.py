@@ -72,23 +72,23 @@ class SQLVocabularyWordRepository(VocabularyWordRepository):
             .scalar_subquery()
         )
 
-        stmt = (select(VocabularyWordModel, sense_count.label("sense_count"))
-                .options(
-                    selectinload(VocabularyWordModel.language)
-                )
-                .where( 
-                    VocabularyWordModel.word == word,
-                    VocabularyWordModel.language_id == language_id
-                ))
+        stmt = (
+            select(VocabularyWordModel, sense_count.label("sense_count"))
+            .options(selectinload(VocabularyWordModel.language))
+            .where(
+                VocabularyWordModel.word == word,
+                VocabularyWordModel.language_id == language_id,
+            )
+        )
 
         result = await self.session.execute(stmt)
+        row = result.one_or_none()
 
-        model = result.one_or_none()
-
-        if model is None:
+        if row is None:
             return None
 
-        return VocabularyWordSummaryMapper.to_entity(model, sense_count)
+        model, count = row
+        return VocabularyWordSummaryMapper.to_entity(model, count)
 
     async def find_by_id(self, vocabulary_word_id: int) -> VocabularyWord | None:
         stmt = (select(VocabularyWordModel)

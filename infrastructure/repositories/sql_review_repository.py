@@ -41,6 +41,12 @@ class SQLReviewRepository(ReviewRepository):
         page_size: int = 50
     ) -> tuple[list[ReviewSummary], int]:
 
+        local_tz = timezone(timedelta(hours=2))
+        now = datetime.now(local_tz)
+
+        start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_today = start_of_today + timedelta(days=1)
+
         exercise_count = (
             select(func.count(ExerciseModel.id))
             .where(
@@ -57,7 +63,7 @@ class SQLReviewRepository(ReviewRepository):
         if up_to_now:
             base_conditions.append(
                 UserVocabularyModel.next_review_at
-                <= datetime.now(timezone.utc)
+                <= end_of_today
             )
 
         if status:
@@ -209,7 +215,8 @@ class SQLReviewRepository(ReviewRepository):
 
     async def get_statistics(self, user_id: int) -> ReviewStatistics:
 
-        now = datetime.now(timezone.utc)
+        local_tz = timezone(timedelta(hours=2))
+        now = datetime.now(local_tz)
 
         start_of_today = now.replace(
             hour=0,
@@ -217,75 +224,65 @@ class SQLReviewRepository(ReviewRepository):
             second=0,
             microsecond=0
         )
+        end_of_today = start_of_today + timedelta(days=1)
 
-        review_stats = (
-            select(
-                func.count(ReviewModel.id)
-                    .filter(
-                        ReviewModel.status == PersistenceReviewStatus.PASSED
-                    )
-                    .label("completed_reviews"),
-
-                func.count(ReviewModel.id)
-                    .filter(
-                        ReviewModel.status == PersistenceReviewStatus.FAILED
-                    )
-                    .label("failed_reviews")
-            )
-                    .select_from(ReviewModel)
-            .join(
-                UserVocabularyModel,
-                ReviewModel.user_vocabulary_id == UserVocabularyModel.id
-            )
-            .where(
-                UserVocabularyModel.user_id == user_id
-            )
-            .subquery()
-        )
-
-        vocabulary_stats = (
-            select(
-                func.count(ReviewModel.id)
-                    .filter(
-                        UserVocabularyModel.next_review_at >= start_of_today,
-                        UserVocabularyModel.next_review_at < start_of_today + timedelta(days=1),
-                    )
-                    .label("reviews_to_review"),
-                func.count(ReviewModel.id)
-                    .filter(
-                        UserVocabularyModel.next_review_at < start_of_today
-                    )
-                    .label("overdue_reviews")
-            )
-                    .select_from(ReviewModel)
+        completed_stmt = (
+            select(func.count(ReviewModel.id))
             .join(
                 UserVocabularyModel,
                 ReviewModel.user_vocabulary_id == UserVocabularyModel.id
             )
             .where(
                 UserVocabularyModel.user_id == user_id,
-                ReviewModel.status == PersistenceReviewStatus.PENDING
+                ReviewModel.status == PersistenceReviewStatus.PASSED,
             )
-            .subquery()
         )
 
-        stmt = select(
-            review_stats.c.completed_reviews,
-            review_stats.c.failed_reviews,
-            vocabulary_stats.c.reviews_to_review,
-            vocabulary_stats.c.overdue_reviews
+        failed_stmt = (
+            select(func.count(ReviewModel.id))
+            .join(
+                UserVocabularyModel,
+                ReviewModel.user_vocabulary_id == UserVocabularyModel.id
+            )
+            .where(
+                UserVocabularyModel.user_id == user_id,
+                ReviewModel.status == PersistenceReviewStatus.FAILED,
+            )
         )
 
-        result = await self.session.execute(stmt)
-
-        row = result.one()
-
-        completed_reviews = row.completed_reviews or 0
-        failed_reviews = row.failed_reviews or 0
-
-        total_finished_reviews = (
-            completed_reviews + failed_reviews
+        reviews_to_review_stmt = (
+            select(func.count(ReviewModel.id))
+            .join(
+                UserVocabularyModel,
+                ReviewModel.user_vocabulary_id == UserVocabularyModel.id
+            )
+            .where(
+                UserVocabularyModel.user_id == user_id,
+                ReviewModel.status == PersistenceReviewStatus.PENDING,
+                UserVocabularyModel.next_review_at >= start_of_today,
+                UserVocabularyModel.next_review_at < end_of_today,
+            )
         )
+
+        overdue_reviews_stmt = (
+            select(func.count(ReviewModel.id))
+            .join(
+                UserVocabularyModel,
+                ReviewModel.user_vocabulary_id == UserVocabularyModel.id
+            )
+            .where(
+                UserVocabularyModel.user_id == user_id,
+                ReviewModel.status == PersistenceReviewStatus.PENDING,
+                UserVocabularyModel.next_review_at < start_of_today,
+            )
+        )
+
+        completed_reviews = (await self.session.execute(completed_stmt)).scalar_one() or 0
+        failed_reviews = (await self.session.execute(failed_stmt)).scalar_one() or 0
+        reviews_to_review = (await self.session.execute(reviews_to_review_stmt)).scalar_one() or 0
+        overdue_reviews = (await self.session.execute(overdue_reviews_stmt)).scalar_one() or 0
+
+        total_finished_reviews = completed_reviews + failed_reviews
 
         success_rate = (
             completed_reviews / total_finished_reviews * 100
@@ -295,6 +292,6 @@ class SQLReviewRepository(ReviewRepository):
 
         return ReviewStatistics(
             success_rate=round(success_rate, 2),
-            reviews_to_review=row.reviews_to_review or 0,
-            overdue_reviews=row.overdue_reviews or 0
+            reviews_to_review=reviews_to_review,
+            overdue_reviews=overdue_reviews,
         )
