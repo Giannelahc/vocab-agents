@@ -13,7 +13,7 @@ class SynonymModel(Base):
 
     word_sense_id = Column(
         Integer,
-        ForeignKey("word_senses.id")
+        ForeignKey("word_senses.id", ondelete="CASCADE")
     )
 
     word_sense = relationship(

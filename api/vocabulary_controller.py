@@ -53,6 +53,16 @@ async def get_vocabulary_by_id(
     return VocabularyMapper.to_response(vocabulary_word)
 
 
+@router.delete("/{word_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_vocabulary_by_id(
+    word_id: int,
+    user_id: int = Depends(get_current_user),
+    service: VocabularyWordService = Depends(get_vocabulary_word_service)
+):
+    await service.delete_word_by_id(word_id, user_id)
+    return None
+
+
 @router.post("/{word_sense_id}/examples")
 async def register_user_examples(
     user_examples: ExampleRequest,

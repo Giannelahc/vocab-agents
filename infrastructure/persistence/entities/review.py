@@ -12,11 +12,16 @@ class ReviewModel(Base):
     __tablename__ = "reviews"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_vocabulary_id = Column(Integer, ForeignKey("user_vocabularies.id"))
+    user_vocabulary_id = Column(Integer, ForeignKey("user_vocabularies.id", ondelete="CASCADE"))
     status      = Column(Enum(ReviewStatus), default=ReviewStatus.PENDING, nullable=False)
     generation_status      = Column(Enum(GenerationStatus), nullable=False)
 
     completed_at = Column(DateTime(timezone=True), nullable=True)
+
+    user_vocabulary = relationship(
+        "UserVocabularyModel",
+        back_populates="reviews"
+    )
 
     exercises = relationship(
         "ExerciseModel",

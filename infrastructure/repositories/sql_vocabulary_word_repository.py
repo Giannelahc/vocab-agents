@@ -1,6 +1,6 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from sqlalchemy.orm import selectinload
 
 from domain.models.vocabulary_word import VocabularyWord
@@ -9,6 +9,11 @@ from domain.repositories.vocabulary_word_repository import VocabularyWordReposit
 from infrastructure.persistence.entities.vocabulary_word import VocabularyWordModel
 from infrastructure.persistence.entities.user_vocabulary import UserVocabularyModel
 from infrastructure.persistence.entities.word_sense import WordSenseModel
+from infrastructure.persistence.entities.review import ReviewModel
+from infrastructure.persistence.entities.exercise import ExerciseModel
+from infrastructure.persistence.entities.example import ExampleModel
+from infrastructure.persistence.entities.synonym import SynonymModel
+from infrastructure.persistence.entities.user_example import UserExampleModel
 from infrastructure.persistence.mappers.vocabulary_word_mapper import VocabularyWordMapper
 from infrastructure.persistence.mappers.vocabulary_word_summary_mapper import VocabularyWordSummaryMapper
 from infrastructure.persistence.enums.vocabulary_status import VocabularyStatus as PersistenceVocabularyStatus
@@ -38,6 +43,58 @@ class SQLVocabularyWordRepository(VocabularyWordRepository):
 
         model.status = PersistenceVocabularyStatus(status.value)
         await self.session.flush()
+
+    async def delete_by_id(self, vocabulary_word_id: int, user_id: int) -> None:
+
+        user_vocab_stmt = (
+            select(UserVocabularyModel.id)
+            .where(
+                UserVocabularyModel.user_id == user_id,
+                UserVocabularyModel.vocabulary_word_id == vocabulary_word_id,
+            )
+        )
+
+        result = await self.session.execute(user_vocab_stmt)
+
+        user_vocab_id = result.scalar_one_or_none()
+
+        if user_vocab_id is None:
+            raise ValueError(
+                f"Vocabulary word with id {vocabulary_word_id} "
+                f"not found for user {user_id}."
+            )
+
+        # Delete the user's relationship.
+        await self.session.execute(
+            delete(UserVocabularyModel).where(
+                UserVocabularyModel.id == user_vocab_id
+            )
+        )
+
+        # Check whether another user still uses the word.
+        remaining_stmt = (
+            select(UserVocabularyModel.id)
+            .where(
+                UserVocabularyModel.vocabulary_word_id
+                == vocabulary_word_id
+            )
+            .limit(1)
+        )
+
+        remaining_result = await self.session.execute(remaining_stmt)
+
+        remaining_user_vocab_id = remaining_result.scalar_one_or_none()
+
+        # No other user uses the word.
+        if remaining_user_vocab_id is None:
+
+            await self.session.execute(
+                delete(VocabularyWordModel).where(
+                    VocabularyWordModel.id == vocabulary_word_id
+                )
+            )
+
+        await self.session.commit()
 
     async def update_senses(self, vocabulary_word: VocabularyWord) -> VocabularyWord:
         stmt = (select(VocabularyWordModel)

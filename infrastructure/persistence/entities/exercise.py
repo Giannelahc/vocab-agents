@@ -20,7 +20,7 @@ class ExerciseModel(Base):
 
     review_id = Column(
         Integer,
-        ForeignKey("reviews.id"),
+        ForeignKey("reviews.id", ondelete="CASCADE"),
         nullable=False
     )
 

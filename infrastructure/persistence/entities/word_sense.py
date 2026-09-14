@@ -21,7 +21,7 @@ class WordSenseModel(Base):
 
     word_id = Column(
         Integer,
-        ForeignKey("words.id")
+        ForeignKey("words.id", ondelete="CASCADE")
     )
 
     word = relationship("VocabularyWordModel", back_populates="senses")
@@ -34,8 +34,7 @@ class WordSenseModel(Base):
 
     user_examples = relationship(
         "UserExampleModel",
-        back_populates="word_sense",
-        cascade="all, delete-orphan"
+        back_populates="word_sense"
     )
 
     synonyms = relationship(

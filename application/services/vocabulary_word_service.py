@@ -11,3 +11,6 @@ class VocabularyWordService:
 
     async def get_word_by_id(self, vocabulary_word_id: int) -> VocabularyWord:
         return await self.vocabulary_word_repository.find_by_id(vocabulary_word_id)
+
+    async def delete_word_by_id(self, vocabulary_word_id: int, user_id: int) -> None:
+        await self.vocabulary_word_repository.delete_by_id(vocabulary_word_id, user_id)

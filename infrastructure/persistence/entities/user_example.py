@@ -11,9 +11,23 @@ class UserExampleModel(Base):
 
     sentence = Column(Text, nullable=False)
 
+    user_vocabulary_id = Column(
+        Integer,
+        ForeignKey(
+            "user_vocabularies.id",
+            ondelete="CASCADE"
+        ),
+        nullable=False
+    )
+
     word_sense_id = Column(
         Integer,
         ForeignKey("word_senses.id")
+    )
+
+    user_vocabulary = relationship(
+        "UserVocabularyModel",
+        back_populates="user_examples"
     )
 
     word_sense = relationship(

@@ -14,14 +14,18 @@ class VocabularyWordRepository(ABC):
 
     @abstractmethod
     async def update_status(self, vocabulary_word_id: int, status: VocabularyStatus) -> None:
-        pass    
+        pass
+
+    @abstractmethod
+    async def delete_by_id(self, vocabulary_word_id: int, user_id: int) -> None:
+        pass
 
     @abstractmethod
     async def update_senses(self, vocabulary_word: VocabularyWord) -> VocabularyWord:
         pass
 
     @abstractmethod
-    async def find_by_word_and_language(self, word: str, language_id: int) -> VocabularyWordSummary | None: 
+    async def find_by_word_and_language(self, word: str, language_id: int) -> VocabularyWordSummary | None:
         pass
 
     @abstractmethod

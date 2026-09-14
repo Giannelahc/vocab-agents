@@ -3,6 +3,7 @@ from sqlalchemy import (
     Column, Integer, DateTime, ForeignKey
 )
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from infrastructure.persistence.database import Base
 
 class UserVocabularyModel(Base):
@@ -28,4 +29,16 @@ class UserVocabularyModel(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False
+    )
+
+    reviews = relationship(
+        "ReviewModel",
+        back_populates="user_vocabulary",
+        cascade="all, delete-orphan"
+    )
+
+    user_examples = relationship(
+        "UserExampleModel",
+        back_populates="user_vocabulary",
+        cascade="all, delete-orphan"
     )
