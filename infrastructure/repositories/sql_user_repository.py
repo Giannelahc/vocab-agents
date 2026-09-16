@@ -1,6 +1,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from datetime import date
 
 from domain.models.user import User
 from domain.repositories.user_repository import UserRepository
@@ -18,6 +19,21 @@ class SQLUserRepository(UserRepository):
         await self.session.commit()
         await self.session.refresh(model)
         return UserMapper.to_entity(model)
+
+    async def update_streak(self, user_id: int, streak: int, last_streak_date: date | None) -> None:
+        stmt = select(UserModel).where(UserModel.id == user_id)
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+
+        if model is None:
+            raise ValueError(f"User with id {user_id} not found.")
+
+        model.streak = streak
+
+        if last_streak_date is not None:
+            model.last_streak_date = last_streak_date
+
+        await self.session.commit()
 
 
     async def find_by_id(self, user_id: int) -> User | None:

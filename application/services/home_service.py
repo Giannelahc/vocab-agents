@@ -1,33 +1,42 @@
 import asyncio
+from datetime import datetime
 
 from domain.models.home_info import HomeInfo
-from domain.repositories.user_preference_repository import UserPreferenceRepository
+from domain.repositories.review_repository import ReviewRepository
 from domain.repositories.user_repository import UserRepository
 from domain.repositories.user_vocabulary_repository import UserVocabularyRepository
 
 class HomeService:
     def __init__(self, user_repository: UserRepository,
-                 user_vocabulary_repository: UserVocabularyRepository):
+                 user_vocabulary_repository: UserVocabularyRepository,
+                 review_repository: ReviewRepository):
         self.user_repository = user_repository
         self.user_vocabulary_repository = user_vocabulary_repository
+        self.review_repository = review_repository
 
     async def get_home_summary(self, user_id) -> HomeInfo:
         user = await self.user_repository.find_by_id(user_id)
 
-        new_words_current_week_task = self.user_vocabulary_repository.find_new_words_current_week()
-        learned_words_task = self.user_vocabulary_repository.count_words_by_review_level_6()
+        vocabulary_statistics = await self.user_vocabulary_repository.get_vocabulary_statistics(user_id)
 
-        new_words_current_week, learned_words = await asyncio.gather(
-            new_words_current_week_task,
-            learned_words_task,
-        )
+        statistics = await self.review_repository.get_statistics(user_id)
+        if statistics.overdue_reviews > 0 and user.streak > 0:
+
+            await self.user_repository.update_streak(
+                user_id=user_id,
+                streak=0
+            )
+
+            user.streak = 0
+
 
         return HomeInfo(
             user.id,
             user.name,
             user.lastname,
             user.username,
-            new_words_current_week,
-            learned_words,
+            vocabulary_statistics,
+            user.streak,
+            statistics.reviews_to_review
         )
 

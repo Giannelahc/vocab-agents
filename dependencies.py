@@ -96,8 +96,8 @@ def get_use_service(user_preference_repository=Depends(get_user_preference_repos
     return UserService(user_preference_repository, user_repository)
 
 def get_home_service(user_vocabulary_repository=Depends(get_user_vocabulary_repository),
-                    user_repository=Depends(get_user_repository)):
-    return HomeService(user_repository, user_vocabulary_repository)
+                    user_repository=Depends(get_user_repository), review_repository=Depends(get_review_repository)):
+    return HomeService(user_repository, user_vocabulary_repository, review_repository)
 
 
 
@@ -151,7 +151,9 @@ def get_review_service(
         vocabulary_repository: VocabularyWordRepository = Depends(get_vocabulary_repository),
         language_repository: LanguageRepository = Depends(get_language_repository),
         user_preference_service: UserPreferenceService = Depends(get_user_preference_service),
-        exercise_agent: ExerciseAgent = Depends(get_exercise_agent)) -> ReviewService:
+        exercise_agent: ExerciseAgent = Depends(get_exercise_agent),
+        user_repository = Depends(get_user_repository)
+) -> ReviewService:
     return ReviewService(
         session=session,
         review_repository=review_repository,
@@ -160,7 +162,8 @@ def get_review_service(
         language_repository=language_repository,
         user_preference_service=user_preference_service,
         exercise_agent=exercise_agent,
-        review_mapper=ReviewMapper()
+        review_mapper=ReviewMapper(),
+        user_repository=user_repository
     )
 
 def get_supervisor_service(

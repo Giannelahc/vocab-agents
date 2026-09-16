@@ -13,10 +13,18 @@ class UserInfoResponse(BaseModel):
     created_at: datetime
     preference: UserPreferenceDto | None = None
 
+class VocabularyStatisticsDto(BaseModel):
+    language_id: int
+    language_name: str
+    learned_words: int
+    total_words: int
+    new_words_current_week: int
+
 class HomeInfoResponse(BaseModel):
     id: int
     name: str
     lastname: str
     username: str
-    new_words_current_week: int
-    learned_words: int
+    language_statistics: list[VocabularyStatisticsDto]
+    streak: int
+    today_reviews: int

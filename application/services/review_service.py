@@ -1,3 +1,4 @@
+import datetime
 import random
 import asyncio
 import traceback
@@ -5,7 +6,9 @@ import traceback
 from sqlalchemy.ext.asyncio import AsyncSession
 from agents.exercise_agent import ExerciseAgent
 from domain.models.review_notification_summary import ReviewNotificationSummary
+from domain.models.user_vocabulary import UserVocabulary
 from domain.models.word_sense import WordSense
+from domain.repositories.user_repository import UserRepository
 from domain.repositories.review_repository import ReviewRepository
 from domain.repositories.user_vocabulary_repository import UserVocabularyRepository
 from domain.repositories.vocabulary_word_repository import VocabularyWordRepository
@@ -30,7 +33,8 @@ class ReviewService:
                  language_repository: LanguageRepository,
                  user_preference_service: UserPreferenceService,
                  exercise_agent: ExerciseAgent,
-                 review_mapper: ReviewMapper):
+                 review_mapper: ReviewMapper,
+                 user_repository: UserRepository):
         self.session=session
         self.review_repository = review_repository
         self.user_vocabulary_repository = user_vocabulary_repository
@@ -39,6 +43,7 @@ class ReviewService:
         self.user_preference_service = user_preference_service
         self.exercise_agent = exercise_agent
         self.review_mapper = review_mapper
+        self.user_repository = user_repository
 
     async def register_review(self, user_vocabulary_id: int) -> Review:
         review = Review(
@@ -100,42 +105,12 @@ class ReviewService:
             if user_vocabulary is None:
                 raise ValueError("User vocabulary not found")
 
-            answers_by_exercise = {
-                answer.id: answer.answer
-                for answer in answers
-            }
-
-            passed = True
-
-            for exercise in review.exercises:
-                user_answer = answers_by_exercise.get(exercise.id)
-
-                if user_answer is None:
-                    passed = False
-                    break
-
-                if user_answer != exercise.correct_answer:
-                    passed = False
-                    break
-
-            review.status = (
-                ReviewStatus.PASSED
-                if passed
-                else ReviewStatus.FAILED
-            )
-
-            if passed:
-                user_vocabulary.review_level+=1
-                user_vocabulary.next_review_at=(
-                    ReviewScheduler.schedule_next_review(
-                    user_vocabulary.review_level
-                    )
-                )
-            else:
-                user_vocabulary.next_review_at=ReviewScheduler.schedule_next_review(0)
+            self.determine_if_review_passed(review, answers, user_vocabulary)
 
             ##update FAILED or PASSED
             await self.review_repository.update_status(review_id=review.id, status=review.status)
+
+            self.check_and_increment_streak(user_id)
 
             ##update next_level and next_review_at
             await self.user_vocabulary_repository.update(user_vocabulary)
@@ -198,6 +173,55 @@ class ReviewService:
             overdue_reviews=statistics.overdue_reviews,
             total_pending=statistics.reviews_to_review + statistics.overdue_reviews
         )
+
+    async def check_and_increment_streak(self, user_id: int):
+        review_statistics = await self.review_repository.get_statistics(user_id=user_id)
+        
+        # Update the user's streak
+        user = await self.user_repository.find_by_id(user_id)
+
+        today = datetime.date.today()
+        
+        if (review_statistics.reviews_to_review == 0 
+            and review_statistics.overdue_reviews == 0
+            and user.last_streak_date != today):
+            await self.user_repository.update_streak(
+                user_id=user_id,
+                streak=user.streak + 1,
+                last_streak_date=today)
+
+    def determine_if_review_passed(self, review: Review, answers: list[ExerciseAnswer], user_vocabulary: UserVocabulary) -> bool:
+        answers_by_exercise = {
+            answer.id: answer.answer
+            for answer in answers
+        }
+
+        passed = True
+
+        for exercise in review.exercises:
+            user_answer = answers_by_exercise.get(exercise.id)
+
+            if user_answer is None:
+                passed = False
+                break
+
+            if user_answer != exercise.correct_answer:
+                passed = False
+                break
+
+        review.status = (
+            ReviewStatus.PASSED
+            if passed
+            else ReviewStatus.FAILED
+        )
+
+        if passed:
+            user_vocabulary.review_level+=1
+            user_vocabulary.next_review_at=(
+                ReviewScheduler.schedule_next_review(user_vocabulary.review_level)
+            )
+        else:
+            user_vocabulary.next_review_at=ReviewScheduler.schedule_next_review(0)
 
     def determine_correct_answer(self, exercise_type: ExerciseType, 
                                        word_sense: WordSense, 

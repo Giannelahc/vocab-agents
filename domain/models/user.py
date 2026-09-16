@@ -12,4 +12,5 @@ class User:
     username: str
     email: str
     password_hash: str
+    streak: int
     created_at: Optional[datetime] = None

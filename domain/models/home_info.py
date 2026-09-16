@@ -1,7 +1,6 @@
 #domain/models/user_info.py
 from dataclasses import dataclass
-from datetime import datetime
-from domain.models.user_preference import UserPreference
+from domain.models.vocabulary_statistics import VocabularyStatistics
 
 @dataclass
 class HomeInfo:
@@ -10,5 +9,6 @@ class HomeInfo:
     name: str
     lastname: str
     username: str
-    new_words_current_week: int
-    learned_words: int
+    language_statistics: list[VocabularyStatistics]
+    streak: int
+    today_reviews: int

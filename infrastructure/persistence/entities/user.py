@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, String, DateTime
+    Column, Integer, String, DateTime, Date
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -14,6 +14,10 @@ class UserModel(Base):
     username        = Column(String(20), nullable=False)
     email           = Column(String(120), nullable=False, unique=True)
     password_hash   = Column(String(255), nullable=False)
+
+    streak = Column(Integer, default=0, nullable=False)
+    last_streak_date = Column(Date, nullable=True)
+    
     preferences     = relationship(
         "UserPreferenceModel",
         back_populates="user",

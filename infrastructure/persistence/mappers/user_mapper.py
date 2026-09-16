@@ -15,7 +15,8 @@ class UserMapper:
             username=model.username,
             email=model.email,
             password_hash=model.password_hash,
-            created_at=model.created_at
+            created_at=model.created_at,
+            streak=model.streak
         )
 
     @staticmethod
@@ -27,5 +28,6 @@ class UserMapper:
             lastname=entity.lastname,
             username=entity.username,
             email=entity.email,
-            password_hash=entity.password_hash
+            password_hash=entity.password_hash,
+            streak=entity.streak
         )

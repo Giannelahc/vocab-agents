@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 
 from domain.models.user_vocabulary import UserVocabulary
+from domain.models.vocabulary_statistics import VocabularyStatistics
 
 
 class UserVocabularyRepository(ABC):
@@ -28,6 +29,10 @@ class UserVocabularyRepository(ABC):
 
     @abstractmethod
     async def count_words_by_review_level_6(self) -> int:
+        pass
+
+    @abstractmethod
+    async def get_vocabulary_statistics(self, user_id: int) -> list[VocabularyStatistics]:
         pass
 
 
