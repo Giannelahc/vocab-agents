@@ -2,10 +2,11 @@
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 
+from application.services.review_flashcard_service import ReviewFlashcardService
 from application.services.user_service import UserService
-from dependencies import get_current_user, get_review_service, get_use_service
+from dependencies import get_current_user, get_review_service, get_use_service, get_review_flashcard_service
 from api.mappers.review_mapper import ReviewMapper
-from schemas.review import ExerciseRequest
+from schemas.review import ExerciseRequest, ReviewFlashcardRequest
 from application.services.review_service import ReviewService
 from application.enums.review_status import ReviewStatus
 
@@ -21,11 +22,14 @@ async def complete_review(
 ):
     exercise_list = ReviewMapper.to_entity_list(request)
     review, next_review, next_review_at = await service.complete_review(review_id, user_id, exercise_list)
-    background_tasks.add_task(
-        service.generate_review,
-        user_id=user_id,
-        review=next_review
-    )
+
+    ## If there is a next review, add it to the background tasks to be generated
+    if next_review is not None:
+        background_tasks.add_task(
+            service.generate_review,
+            user_id=user_id,
+            review=next_review
+        )
     return {
         "id": review.id,
         "status": review.status,
@@ -100,3 +104,12 @@ async def get_review_by_id(
 ):
     review = await service.get_review_detail_by_id(review_id)
     return ReviewMapper.to_response(review)
+
+@router.post("/flashcard/{word_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def flashcard_review(
+    request: ReviewFlashcardRequest,
+    word_id: int,
+    user_id: int = Depends(get_current_user),
+    service: ReviewFlashcardService = Depends(get_review_flashcard_service)):
+
+    await service.review_flashcard(word_id, request.rating.value, user_id)

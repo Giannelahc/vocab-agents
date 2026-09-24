@@ -9,6 +9,7 @@ class UserVocabulary:
     user_id: int
     vocabulary_word_id: int
     next_review_at: datetime
+    fsrs_card: Optional[float] = None
 
     created_at: Optional[datetime] = None
 

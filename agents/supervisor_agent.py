@@ -4,21 +4,15 @@ from prompts import pos_tagger_prompt
 from agents import definition_agent, grammar_agent, example_agent
 
 class SupervisorAgent:
-    def __init__(self,  
-                 pos_tagger: pos_tagger_prompt.PosTaggerPromptBuilder, 
+    def __init__(self,
                  definition_agent: definition_agent.DefinitionAgent,
                  grammar_agent: grammar_agent.GrammarAgent,
                  example_agent: example_agent.ExampleAgent):
-        self.pos_tagger_service = pos_tagger
         self.definition_agent = definition_agent
         self.grammar_agent = grammar_agent
         self.example_agent = example_agent
 
-    async def run(self, word, target_languages, language_code):
-
-        response = await self.pos_tagger_service.process_word(word, language_code)
-
-        types = response["types"]
+    async def run(self, word, target_languages, language_code, types: list):
 
         tags = []
 

@@ -4,8 +4,9 @@ from datetime import datetime, time, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
 
+from core.config import settings
 from domain.models.user_vocabulary import UserVocabulary
-from domain.models.vocabulary_word import VocabularyWord
+from domain.models.flashcard_statistics import FlashcardStatistics
 from domain.models.vocabulary_statistics import VocabularyStatistics
 from domain.repositories.user_vocabulary_repository import UserVocabularyRepository
 from infrastructure.persistence.entities.user_vocabulary import UserVocabularyModel
@@ -34,6 +35,7 @@ class SQLUserVocabularyRepository(UserVocabularyRepository):
             raise ValueError(f"Vocabulary word with id {user_vocabulary.id} not found.")
 
         model.review_level=user_vocabulary.review_level
+        model.fsrs_card=user_vocabulary.fsrs_card
         model.next_review_at=user_vocabulary.next_review_at
         await self.session.flush()
         await self.session.refresh(model)
@@ -68,33 +70,6 @@ class SQLUserVocabularyRepository(UserVocabularyRepository):
 
         return UserVocabularyMapper.to_entity(model)
 
-    async def find_new_words_current_week(self) -> int:
-        now = datetime.now(timezone.utc)
-        monday_date = now.date() - timedelta(days=now.weekday())
-        week_start = datetime.combine(monday_date, time.min, tzinfo=timezone.utc)
-        week_end = week_start + timedelta(days=7)
-
-        stmt = (
-            select(func.count())
-            .select_from(UserVocabularyModel)
-            .where(
-                UserVocabularyModel.created_at >= week_start,
-                UserVocabularyModel.created_at < week_end,
-            )
-        )
-
-        result = await self.session.execute(stmt)
-        return result.scalar_one()
-
-    async def count_words_by_review_level_6(self) -> int:
-        stmt = (
-            select(func.count())
-            .select_from(UserVocabularyModel)
-            .where(UserVocabularyModel.review_level == 6)
-        )
-
-        result = await self.session.execute(stmt)
-        return result.scalar_one()
 
     async def get_vocabulary_statistics(
         self,
@@ -106,7 +81,7 @@ class SQLUserVocabularyRepository(UserVocabularyRepository):
         week_end = week_start + timedelta(days=7)
 
         learned_words = func.count(UserVocabularyModel.id).filter(
-            UserVocabularyModel.review_level == 6
+            UserVocabularyModel.review_level == settings.LEVEL_TO_FLASHCARDS
         )
         new_words_current_week = func.count(UserVocabularyModel.id).filter(
             UserVocabularyModel.created_at >= week_start,
@@ -153,4 +128,52 @@ class SQLUserVocabularyRepository(UserVocabularyRepository):
             ) in result.all()
         ]
 
+    async def get_flashcards_statistics(self, user_id: int) -> FlashcardStatistics:
+
+            local_tz = timezone(timedelta(hours=2))
+            now = datetime.now(local_tz)
+
+            start_of_today = now.replace(
+                hour=0,
+                minute=0,
+                second=0,
+                microsecond=0
+            )
+            end_of_today = start_of_today + timedelta(days=1)
+            
+            flashcards_to_review_stmt = (
+                select(func.count(UserVocabularyModel.id))
+                .where(
+                    UserVocabularyModel.user_id == user_id,
+                    UserVocabularyModel.review_level == settings.LEVEL_TO_FLASHCARDS,
+                    UserVocabularyModel.next_review_at >= start_of_today,
+                    UserVocabularyModel.next_review_at < end_of_today,
+                )
+            )
+
+            flashcards_active = (
+                select(func.count(UserVocabularyModel.id))
+                .where(
+                    UserVocabularyModel.user_id == user_id,
+                    UserVocabularyModel.review_level == settings.LEVEL_TO_FLASHCARDS
+                )
+            )
     
+            overdue_flashcards_stmt = (
+                select(func.count(UserVocabularyModel.id))
+                .where(
+                    UserVocabularyModel.user_id == user_id,
+                    UserVocabularyModel.review_level == settings.LEVEL_TO_FLASHCARDS,
+                    UserVocabularyModel.next_review_at < start_of_today,
+                )
+            )
+
+            flashcards_to_review = (await self.session.execute(flashcards_to_review_stmt)).scalar_one() or 0
+            overdue_flashcards = (await self.session.execute(overdue_flashcards_stmt)).scalar_one() or 0
+            flashcards_active_count = (await self.session.execute(flashcards_active)).scalar_one() or 0
+
+            return FlashcardStatistics(
+                flashcards_to_review=flashcards_to_review,
+                overdue_flashcards=overdue_flashcards,
+                flashcards_active=flashcards_active_count > 0
+            )

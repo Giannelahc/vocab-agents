@@ -11,3 +11,5 @@ class ReviewNotificationSummary:
     today_reviews: int
     overdue_reviews: int
     total_pending: int
+    flashcards_to_review: int
+    overdue_flashcards: int

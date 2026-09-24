@@ -14,7 +14,7 @@ from domain.repositories.user_vocabulary_repository import UserVocabularyReposit
 from domain.repositories.vocabulary_word_repository import VocabularyWordRepository
 from domain.repositories.language_repository import LanguageRepository
 from application.enums.exercise_type import ExerciseType
-from domain.models.review_statistics import ReviewStatistics
+from core.config import settings
 from domain.models.review_home import ReviewHome
 from application.services.user_preference import UserPreferenceService
 from application.services.review_scheduler import ReviewScheduler
@@ -110,13 +110,15 @@ class ReviewService:
             ##update FAILED or PASSED
             await self.review_repository.update_status(review_id=review.id, status=review.status)
 
-            self.check_and_increment_streak(user_id)
+            await self.check_and_increment_streak(user_id)
 
             ##update next_level and next_review_at
             await self.user_vocabulary_repository.update(user_vocabulary)
 
-            ##Create next new review
-            next_review = await self.register_review(user_vocabulary.id)
+            ##Create next new review if it is not the last level
+            next_review = None
+            if user_vocabulary.review_level < settings.LEVEL_TO_FLASHCARDS:
+                next_review = await self.register_review(user_vocabulary.id)
 
             await self.session.commit()
 
@@ -167,15 +169,19 @@ class ReviewService:
 
     async def get_notification_summary(self, user_id: int) -> ReviewNotificationSummary:
         statistics = await self.review_repository.get_statistics(user_id)
+        flashcard_statistics = await self.user_vocabulary_repository.get_flashcards_statistics(user_id)
 
         return ReviewNotificationSummary(
             today_reviews=statistics.reviews_to_review,
             overdue_reviews=statistics.overdue_reviews,
-            total_pending=statistics.reviews_to_review + statistics.overdue_reviews
+            total_pending=statistics.reviews_to_review + statistics.overdue_reviews,
+            flashcards_to_review=flashcard_statistics.flashcards_to_review,
+            overdue_flashcards=flashcard_statistics.overdue_flashcards
         )
 
     async def check_and_increment_streak(self, user_id: int):
         review_statistics = await self.review_repository.get_statistics(user_id=user_id)
+        flashcard_statistics = await self.user_vocabulary_repository.get_flashcards_statistics(user_id=user_id)
         
         # Update the user's streak
         user = await self.user_repository.find_by_id(user_id)
@@ -184,6 +190,7 @@ class ReviewService:
         
         if (review_statistics.reviews_to_review == 0 
             and review_statistics.overdue_reviews == 0
+            and flashcard_statistics.flashcards_to_review + flashcard_statistics.overdue_flashcards == 0
             and user.last_streak_date != today):
             await self.user_repository.update_streak(
                 user_id=user_id,
@@ -217,9 +224,11 @@ class ReviewService:
 
         if passed:
             user_vocabulary.review_level+=1
-            user_vocabulary.next_review_at=(
-                ReviewScheduler.schedule_next_review(user_vocabulary.review_level)
-            )
+            ##level == 4 is the last level, the next one will be a flashcard
+            if(user_vocabulary.review_level == settings.LEVEL_TO_FLASHCARDS):
+                user_vocabulary.next_review_at=ReviewScheduler.schedule_next_review(0)
+            else:
+                user_vocabulary.next_review_at=ReviewScheduler.schedule_next_review(user_vocabulary.review_level)
         else:
             user_vocabulary.next_review_at=ReviewScheduler.schedule_next_review(0)
 

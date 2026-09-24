@@ -34,7 +34,7 @@ class WordSenseResponse(BaseModel):
     user_examples: list[UserExampleResponse] | None = None
 
 class VocabularyWordSummaryResponse(BaseModel):
-    id: int
+    id: int | None = None
     word: str
     language: LanguageDto | None = None
     status: str

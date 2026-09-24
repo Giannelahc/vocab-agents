@@ -13,7 +13,7 @@ class LLMClient:
     async def complete(self, prompt):
 
         response = await self.client.responses.create(
-            model="gpt-4.1-mini",
+            model="gpt-5-mini",
             input=prompt
         )
 

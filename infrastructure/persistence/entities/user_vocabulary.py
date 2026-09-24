@@ -4,6 +4,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import JSONB
 from infrastructure.persistence.database import Base
 
 class UserVocabularyModel(Base):
@@ -31,6 +32,11 @@ class UserVocabularyModel(Base):
         nullable=False
     )
 
+    fsrs_card = Column(
+        JSONB,
+        nullable=True
+    )
+
     reviews = relationship(
         "ReviewModel",
         back_populates="user_vocabulary",
@@ -39,6 +45,12 @@ class UserVocabularyModel(Base):
 
     user_examples = relationship(
         "UserExampleModel",
+        back_populates="user_vocabulary",
+        cascade="all, delete-orphan"
+    )
+
+    review_history = relationship(
+        "ReviewHistoryModel",
         back_populates="user_vocabulary",
         cascade="all, delete-orphan"
     )

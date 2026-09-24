@@ -15,6 +15,7 @@ from application.services.supervisor_service import SupervisorService
 from application.services.vocabulary_word_service import VocabularyWordService
 from application.services.user_example_service import UserExampleService
 from application.services.review_service import ReviewService
+from application.services.review_flashcard_service import ReviewFlashcardService
 from application.services.vocabulary_identifier_service import VocabularyIdentifierService
 from application.services.user_service import UserService
 from infrastructure.persistence.database import get_db
@@ -24,6 +25,7 @@ from domain.repositories.vocabulary_word_repository import VocabularyWordReposit
 from domain.repositories.user_vocabulary_repository import UserVocabularyRepository
 from domain.repositories.language_repository import LanguageRepository
 from domain.repositories.review_repository import ReviewRepository
+from domain.repositories.review_history_repository import ReviewHistoryRepository
 from domain.repositories.user_example_repository import UserExampleRepository
 
 from infrastructure.clients.llm_client import LLMClient
@@ -32,10 +34,12 @@ from infrastructure.repositories.sql_user_preference_repository import SQLUserPr
 from infrastructure.repositories.sql_user_vocabulary_repository import SQLUserVocabularyRepository
 from infrastructure.repositories.sql_user_repository import SQLUserRepository
 from infrastructure.repositories.sql_review_repository import SQLReviewRepository
+from infrastructure.repositories.sql_review_history_repository import SQLReviewRepository as SQLReviewHistoryRepository
 from infrastructure.repositories.sql_user_example_repository import SQLUserExampleRepository
 
 from infrastructure.repositories.sql_vocabulary_word_repository import SQLVocabularyWordRepository
 from infrastructure.security.jwt_service import JWTService
+from infrastructure.spaced_repetition.fsrs_scheduler import FSRSScheduler
 
 from application.services.auth_service import AuthService
 from application.mappers.vocabulary_mapper import VocabularyMapper
@@ -85,6 +89,9 @@ def get_user_preference_repository(session=Depends(get_db)):
 def get_review_repository(session=Depends(get_db)):
     return SQLReviewRepository(session)
 
+def get_review_history_repository(session=Depends(get_db)):
+    return SQLReviewHistoryRepository(session)
+
 def get_user_example_repository(session=Depends(get_db)):
     return SQLUserExampleRepository(session)
 
@@ -95,9 +102,9 @@ def get_use_service(user_preference_repository=Depends(get_user_preference_repos
                     user_repository=Depends(get_user_repository)):
     return UserService(user_preference_repository, user_repository)
 
-def get_home_service(user_vocabulary_repository=Depends(get_user_vocabulary_repository),
+def get_home_service(session=Depends(get_db),user_vocabulary_repository=Depends(get_user_vocabulary_repository),
                     user_repository=Depends(get_user_repository), review_repository=Depends(get_review_repository)):
-    return HomeService(user_repository, user_vocabulary_repository, review_repository)
+    return HomeService(session, user_repository, user_vocabulary_repository, review_repository)
 
 
 
@@ -142,7 +149,7 @@ def get_pos_tagger_service():
 
 def get_supervisor_agent():
     return SupervisorAgent(definition_agent=get_definition_agent(), grammar_agent=get_grammar_agent(),
-                           example_agent=get_example_agent(), pos_tagger=get_pos_tagger_service())
+                           example_agent=get_example_agent())
 
 def get_review_service(
         session: AsyncSession = Depends(get_db),
@@ -174,6 +181,7 @@ def get_supervisor_service(
     user_preference_service: UserPreferenceService = Depends(get_user_preference_service),
     review_service: ReviewService = Depends(get_review_service),
     supervisor_agent: SupervisorAgent = Depends(get_supervisor_agent),
+    pos_tagger: PosTaggerPromptBuilder = Depends(get_pos_tagger_service)
 ) -> SupervisorService:
 
     return SupervisorService(
@@ -184,7 +192,26 @@ def get_supervisor_service(
         review_service=review_service,
         user_preference_service=user_preference_service,
         supervisor_agent=supervisor_agent,
-        vocabulary_mapper=VocabularyMapper()
+        vocabulary_mapper=VocabularyMapper(),
+        pos_tagger=pos_tagger
+    )
+
+
+def get_review_flashcard_service(
+    session: AsyncSession = Depends(get_db),
+    user_vocabulary_repository: UserVocabularyRepository = Depends(get_user_vocabulary_repository),
+    review_history_repository: ReviewHistoryRepository = Depends(get_review_history_repository),
+    review_repository: ReviewRepository = Depends(get_review_repository),
+    user_repository=Depends(get_user_repository),
+    fsrs_scheduler: FSRSScheduler = Depends(lambda: FSRSScheduler()),
+) -> ReviewFlashcardService:
+    return ReviewFlashcardService(
+        session=session,
+        user_vocabulary_repository=user_vocabulary_repository,
+        review_history_repository=review_history_repository,
+        review_repository=review_repository,
+        user_repository=user_repository,
+        fsrs_scheduler=fsrs_scheduler,
     )
 
 oauth2_scheme = OAuth2PasswordBearer(

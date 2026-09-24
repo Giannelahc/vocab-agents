@@ -28,3 +28,5 @@ class HomeInfoResponse(BaseModel):
     language_statistics: list[VocabularyStatisticsDto]
     streak: int
     today_reviews: int
+    flashcards_active: bool
+    flashcards_to_review: int

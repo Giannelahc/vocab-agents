@@ -16,6 +16,7 @@ from application.services.user_preference import UserPreferenceService
 from application.services.review_service import ReviewService
 from domain.models.user_vocabulary import UserVocabulary
 from domain.models.vocabulary_word_summary import VocabularyWordSummary
+from prompts import pos_tagger_prompt
 
 
 class SupervisorService:
@@ -27,7 +28,8 @@ class SupervisorService:
                  user_preference_service: UserPreferenceService,
                  review_service: ReviewService,
                  supervisor_agent: SupervisorAgent,
-                 vocabulary_mapper: VocabularyMapper):
+                 vocabulary_mapper: VocabularyMapper,
+                 pos_tagger: pos_tagger_prompt.PosTaggerPromptBuilder):
         self.session = session
         self.vocabulary_repository = vocabulary_repository
         self.language_repository = language_repository
@@ -36,6 +38,12 @@ class SupervisorService:
         self.supervisor_agent = supervisor_agent
         self.vocabulary_mapper = vocabulary_mapper
         self.user_vocabulary_repository = user_vocabulary_repository
+        self.pos_tagger_service = pos_tagger
+
+    async def validate_word(self, word: str, language_id: int, user_id: int):
+        language = await self.language_repository.find_by_id(language_id)
+        response = await self.pos_tagger_service.process_word(word, language.code)
+        return response
 
     async def register_word(self, word: str, language_id: int, user_id: int, regenerate: bool):
         existing = await self.vocabulary_repository.find_by_word_and_language(word, language_id)
@@ -79,7 +87,7 @@ class SupervisorService:
 
         return VocabularyMapper.to_word_summary(saved_word), review
 
-    async def process_word(self, user_id: int, vocabulary_id: int, review: Review):
+    async def process_word(self, user_id: int, vocabulary_id: int, review: Review, types: list):
         vocabulary = await self.vocabulary_repository.find_by_id(vocabulary_id)
 
         try:
@@ -88,7 +96,7 @@ class SupervisorService:
 
             await self.session.commit()
 
-            analysis = await self.build_analysis(vocabulary.word, vocabulary.language_id, user_id)
+            analysis = await self.build_analysis(vocabulary.word, vocabulary.language_id, user_id, types)
 
             ##update status to COMPLETED
             await self.save_analysis(vocabulary, analysis)
@@ -117,10 +125,10 @@ class SupervisorService:
             target_languages.remove(language_code)
         return target_languages
 
-    async def build_analysis(self, word: str, language_id: int, user_id: int):
+    async def build_analysis(self, word: str, language_id: int, user_id: int, types: list):
         language = await self.language_repository.find_by_id(language_id)
         target_languages = await self.get_target_languages(user_id, language.code)
-        analysis = await self.supervisor_agent.run(word, target_languages, language.code)
+        analysis = await self.supervisor_agent.run(word, target_languages, language.code, types)
         return analysis
 
     async def save_analysis(self, vocabulary: VocabularyWord, analysis: dict):

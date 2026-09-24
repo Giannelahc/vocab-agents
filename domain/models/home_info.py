@@ -12,3 +12,5 @@ class HomeInfo:
     language_statistics: list[VocabularyStatistics]
     streak: int
     today_reviews: int
+    flashcards_active: bool
+    flashcards_to_review: int

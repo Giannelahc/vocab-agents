@@ -17,7 +17,8 @@ class UserVocabularyMapper:
             review_level=model.review_level,
             next_review_at=model.next_review_at,
             last_review_at=model.last_review_at,
-            created_at=model.created_at
+            created_at=model.created_at,
+            fsrs_card=model.fsrs_card
         )
 
     @staticmethod
@@ -32,5 +33,6 @@ class UserVocabularyMapper:
             review_level=entity.review_level,
             next_review_at=entity.next_review_at,
             last_review_at=entity.last_review_at,
-            created_at=entity.created_at
+            created_at=entity.created_at,
+            fsrs_card=entity.fsrs_card
         )

@@ -13,11 +13,13 @@ class DefinitionPromptBuilder:
         return await self.get_definition_from_serapi_search(word, tag, target_languages, language_detected)
 
     async def get_definition_from_serapi_search(self, word: str, tag: str, target_languages: list, language_detected: str):
-        query = f'{word} meaning '
+        query = f'{word} meaning as a {tag} in {language_detected}'
         try:
             definitions = await self.serapi_client.search(query)
-            print(f"Target languages: {target_languages}")
-            return await self.process_definitions(word, tag, definitions, target_languages, language_detected)
+            source_definitions = self.extract_definition_sources(
+                definitions
+            )
+            return await self.process_definitions(word, tag, source_definitions, target_languages, language_detected)
         except Exception as e:
             print("SerAPI search error:", repr(e))
             traceback.print_exc()
@@ -49,3 +51,14 @@ class DefinitionPromptBuilder:
         """
         response = await self.llm_client.complete(prompt)
         return json.loads(response)
+
+    def extract_definition_sources(
+        self,
+        search_result: dict
+    ) -> list[str]:
+
+        return [
+            result["snippet"]
+            for result in search_result.get("organic_results", [])
+            if result.get("snippet")
+        ]

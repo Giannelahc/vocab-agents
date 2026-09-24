@@ -1,6 +1,7 @@
 # schemas/review.py
 from pydantic import BaseModel
 from datetime import datetime
+from application.enums.review_rating import ReviewRating
 
 class ExerciseRequest(BaseModel):
     id: int | None = None
@@ -50,4 +51,9 @@ class ReviewNotificationSummaryResponse(BaseModel):
     today_reviews: int
     overdue_reviews: int
     total_pending: int
+    flashcards_to_review: int
+    overdue_flashcards: int
     user_name: str
+
+class ReviewFlashcardRequest(BaseModel):
+    rating: ReviewRating 

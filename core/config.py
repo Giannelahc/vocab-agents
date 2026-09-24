@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
     INTERVALS: list[int] = [1, 3, 7, 14, 30, 60]
+    LEVEL_TO_FLASHCARDS: int = 3
 
     class Config:
         env_file = ".env"

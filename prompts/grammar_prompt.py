@@ -75,7 +75,7 @@ class GrammarPromptBuilder:
         Provide:
         - Present tense: first person singular, first person plural,
         and third person plural.
-        - Past participle.
+        - Past participle: past tense form.
         - Future tense: first person singular, first person plural,
         and third person plural.
 

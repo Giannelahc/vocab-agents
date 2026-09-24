@@ -19,7 +19,9 @@ class HomeInfoMapper:
                 for statistic in entity.language_statistics
             ],
             streak=entity.streak,
-            today_reviews=entity.today_reviews
+            today_reviews=entity.today_reviews,
+            flashcards_active=entity.flashcards_active,
+            flashcards_to_review=entity.flashcards_to_review
         )
 
         return model

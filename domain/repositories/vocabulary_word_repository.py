@@ -33,7 +33,8 @@ class VocabularyWordRepository(ABC):
         pass
 
     @abstractmethod
-    async def find_by_user_id(self, user_id: int, language_id: int, page: int, page_size: int, search: str) -> tuple[list[VocabularyWordSummary], int]:
+    async def find_by_user_id(self, user_id: int, language_id: int, page: int, page_size: int, 
+                              search: str, review_level: int, due: bool) -> tuple[list[VocabularyWordSummary], int]:
         pass
 
     @abstractmethod

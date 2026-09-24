@@ -33,8 +33,6 @@ class SQLUserRepository(UserRepository):
         if last_streak_date is not None:
             model.last_streak_date = last_streak_date
 
-        await self.session.commit()
-
 
     async def find_by_id(self, user_id: int) -> User | None:
 

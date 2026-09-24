@@ -1,4 +1,6 @@
 
+from datetime import datetime, timedelta, timezone
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete
 from sqlalchemy.orm import selectinload
@@ -174,7 +176,19 @@ class SQLVocabularyWordRepository(VocabularyWordRepository):
         return VocabularyWordMapper.to_entity(model)
 
     async def find_by_user_id(self, user_id: int, language_id: int | None,
-                              page: int, page_size: int, search: str) -> tuple[list[VocabularyWordSummary], int]:
+                              page: int, page_size: int, search: str, 
+                              review_level: int, due: bool) -> tuple[list[VocabularyWordSummary], int]:
+
+        local_tz = timezone(timedelta(hours=2))
+        now = datetime.now(local_tz)
+
+        start_of_today = now.replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0
+        )
+        end_of_today = start_of_today + timedelta(days=1)
 
         sense_count = (
             select(func.count(WordSenseModel.id))
@@ -209,6 +223,14 @@ class SQLVocabularyWordRepository(VocabularyWordRepository):
             count_stmt = count_stmt.where(
                 VocabularyWordModel.language_id == language_id
             )
+
+        if review_level:
+            stmt = stmt.where(UserVocabularyModel.review_level == review_level)
+            count_stmt = count_stmt.where(UserVocabularyModel.review_level == review_level)
+
+        if due:
+            stmt = stmt.where(UserVocabularyModel.next_review_at <= end_of_today)
+            count_stmt = count_stmt.where(UserVocabularyModel.next_review_at <= end_of_today)
 
         if search:
             search_pattern = f"%{search.strip()}%"

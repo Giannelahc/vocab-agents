@@ -16,7 +16,8 @@ class ExamplePromptBuilder:
         query = f'{word} as {tag} examples in {language_detected}'
         try:
             examples = await self.serapi_client.search(query)
-            return await self.process_examples(word, tag, examples, language_detected)
+            source_examples = self.extract_example_sources(examples)
+            return await self.process_examples(word, tag, source_examples, language_detected)
         except Exception as e:
             print("SerAPI search error:", repr(e))
             traceback.print_exc()
@@ -30,10 +31,21 @@ class ExamplePromptBuilder:
         of the information must be compact in examples field in the json
         DO NOT use markdown.
         DO NOT use ```json
-        Return a JSON object like:
+        Return a JSON object and return the examples sentences like:
         {{
           "examples": ["..", "..", ".."]
         }}
         """
         response = await self.llm_client.complete(prompt)
         return json.loads(response)
+
+    def extract_example_sources(
+        self,
+        search_result: dict
+    ) -> list[str]:
+
+        return [
+            result["snippet"]
+            for result in search_result.get("organic_results", [])
+            if result.get("snippet")
+        ]

@@ -101,7 +101,9 @@ class ReviewMapper:
             today_reviews=entity.today_reviews,
             overdue_reviews=entity.overdue_reviews,
             total_pending=entity.total_pending,
-            user_name=user_info.username
+            user_name=user_info.username,
+            flashcards_to_review=entity.flashcards_to_review,
+            overdue_flashcards=entity.overdue_flashcards
         )
 
     @staticmethod
