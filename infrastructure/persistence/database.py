@@ -28,15 +28,12 @@ import infrastructure.persistence.entities.vocabulary_word
 import infrastructure.persistence.entities.word_sense
 import infrastructure.persistence.entities.example
 import infrastructure.persistence.entities.user_example
+import infrastructure.persistence.entities.user_vocabulary
 import infrastructure.persistence.entities.review
 import infrastructure.persistence.entities.exercise
+import infrastructure.persistence.entities.review_history
+import infrastructure.persistence.entities.synonym
 
-async def init_db():
-    """
-    Creates all tables defined in models that inherit from Base.
-    """
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
 
 async def get_db():
     async with AsyncSessionLocal() as db:

@@ -1,5 +1,10 @@
 
 
+from sqlalchemy import text
+import time
+
+from infrastructure.persistence.database import engine
+
 from fastapi import APIRouter, Depends
 
 from api.mappers.home_info_mapper import HomeInfoMapper
@@ -25,3 +30,21 @@ async def get_home_summary(
 ):
     home_info = await service.get_home_summary(user_id)
     return HomeInfoMapper.to_response(home_info)
+
+
+@router.get("/db-test")
+async def db_test():
+    start = time.perf_counter()
+
+    async with engine.connect() as conn:
+        connection_time = time.perf_counter() - start
+
+        start_query = time.perf_counter()
+        await conn.execute(text("select * from public.users where id = 4"))
+        await conn.execute(text("select * from public.user_preferences up inner join public.languages l on up.native_language_id = l.id"))
+        query_time = time.perf_counter() - start_query
+
+    return {
+        "connection_seconds": round(connection_time, 3),
+        "query_seconds": round(query_time, 3),
+    }

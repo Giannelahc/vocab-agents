@@ -12,6 +12,6 @@ class User:
     username: str
     email: str
     password_hash: str
-    streak: int
-    last_streak_date: date | None
+    streak: Optional[int] = None
+    last_streak_date: Optional[date] = None
     created_at: Optional[datetime] = None

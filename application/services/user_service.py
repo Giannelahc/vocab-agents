@@ -11,5 +11,7 @@ class UserService:
     async def get_user_info(self, user_id) -> UserInfo:
         user = await self.user_repository.find_by_id(user_id)
         user_preference = await self.user_preference_repository.find_by_user_id(user_id)
+        if user is None:
+            raise ValueError("User not found")
         return UserInfo(user.id, user.name, user.lastname, user.username, user.email, user.created_at, user_preference)
 
