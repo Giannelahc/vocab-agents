@@ -85,7 +85,7 @@ async def register_user_examples(
     user_id: int = Depends(get_current_user),
     service: UserExampleService = Depends(get_user_example_service)
 ):
-    examples = await service.save_examples(user_examples.examples, word_sense_id)
+    examples = await service.save_examples(user_examples.examples, word_sense_id, user_id)
     return [UserExampleMapper.to_response(example) for example in examples]
 
 

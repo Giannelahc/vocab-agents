@@ -29,13 +29,13 @@ class ExercisePromptBuilder:
     async def generate_multiple_choice_translation_exercise(self, word: str, tag: str, native_language: str, correct_translation: str):
         prompt = dedent(f"""
         Generate a multiple-choice translation exercise for the word '{word}' as a {tag} in {native_language}.
-        Provide 4 options, including the correct translation '{correct_translation}' and 3 distractors, in a random order.
+        Provide 4 options, including the correct translation '{correct_translation}' and 3 distractors(these must not be synonyms), in a random order.
         In the correct_option field, specify the index of the correct option (0, 1, 2, or 3).
         DO NOT use markdown.
         DO NOT use ```json
         Return a JSON object like:
         {{
-            "question": "What is the translation of '{word}' in {native_language}?",
+            "question": "What is the translation of '{word}' as a {tag} in {native_language}?",
             "options": ["..", "..", "..", ".."],
             "correct_option": ""
         }}

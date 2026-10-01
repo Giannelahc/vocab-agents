@@ -10,6 +10,7 @@ class UserExampleMapper:
 
         return UserExample(
             id=model.id,
+            user_vocabulary_id=model.user_vocabulary_id,
             word_sense_id=model.word_sense_id,
             sentence=model.sentence
         )
@@ -19,6 +20,7 @@ class UserExampleMapper:
 
         return UserExampleModel(
             id=entity.id,
+            user_vocabulary_id=entity.user_vocabulary_id,
             word_sense_id=entity.word_sense_id,
             sentence=entity.sentence
         )
