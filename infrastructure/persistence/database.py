@@ -10,7 +10,8 @@ if DATABASE_URL.startswith("postgresql+psycopg2://"):
 engine = create_async_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    pool_recycle=3600
+    pool_recycle=3600,
+    connect_args={"ssl": "require"}
 )
 
 AsyncSessionLocal = async_sessionmaker(
