@@ -35,7 +35,7 @@ async def create_word(
         if regenerate or vocabulary.status == VocabularyStatus.FAILED or vocabulary.status == VocabularyStatus.PENDING:
             background_tasks.add_task(service.process_word, user_id, vocabulary.id, review, word_result.get("types", []))
     else:
-        vocabulary = VocabularyWord(
+        vocabulary = VocabularyWordSummary(
             id=None,
             word=request.word,
             language_id=request.language_id,
