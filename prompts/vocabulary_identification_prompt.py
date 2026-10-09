@@ -67,6 +67,8 @@ class VocabularyIdentificationPromptBuilder:
         7. Preserve the original form that appears in the text in the
         "text" field.
 
+        IMPORTANT: If the text is not gramatically correct, attempt to correct it and return the word as it must be.
+
         PHRASAL VERBS AND MULTI-WORD VERBS:
 
         8. Identify phrasal verbs and other established multi-word verbs as a
