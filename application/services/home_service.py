@@ -27,7 +27,11 @@ class HomeService:
             statistics = await self.review_repository.get_statistics(user_id)
             if (statistics.overdue_reviews + flashcard_statistics.overdue_flashcards) > 0 and user.streak > 0:
 
-                await self.user_repository.update_streak(user_id=user_id, streak=0)
+                await self.user_repository.update_streak(
+                    user_id=user_id,
+                    streak=0,
+                    last_streak_date=None,
+                )
 
                 user.streak = 0
 
@@ -48,4 +52,3 @@ class HomeService:
         except Exception:
             await self.session.rollback()
             raise
-
