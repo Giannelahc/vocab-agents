@@ -29,7 +29,7 @@ class SupervisorAgent:
             self.example_agent.run(word, tag, language_code)
         ]
 
-        if "verb" in tag:
+        if "verb" in tag.lower() and "adverb" not in tag.lower():
             tasks.append(
                 self.grammar_agent.process_verb(word, language_code)
             )
