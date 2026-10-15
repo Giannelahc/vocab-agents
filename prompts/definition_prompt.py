@@ -36,6 +36,7 @@ class DefinitionPromptBuilder:
         Use the codes to identify the languages in translation field.
         filter the definitions you consider most appropiates and important and all 
         of the information must be compact in definition field in the json
+        DO NOT change the field names, they must be exactly as in the example below
         DO NOT use markdown.
         DO NOT use ```json
         DO NOT use ' to enclose the keys or values in the json

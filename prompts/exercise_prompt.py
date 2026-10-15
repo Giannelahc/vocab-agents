@@ -13,6 +13,7 @@ class ExercisePromptBuilder:
         Provide 4 options, including the correct definition '{correct_definition}' shortened and with same
          size as the other 3 distractors, in a random order.
         In the correct_option field, specify the index of the correct option (0, 1, 2, or 3).
+        DO NOT change the field names, they must be exactly as in the example below
         DO NOT use markdown.
         DO NOT use ```json
         Return a JSON object like:
@@ -31,6 +32,7 @@ class ExercisePromptBuilder:
         Generate a multiple-choice translation exercise for the word '{word}' as a {tag} in {native_language}.
         Provide 4 options, including the correct translation '{correct_translation}' and 3 distractors(these must not be synonyms), in a random order.
         In the correct_option field, specify the index of the correct option (0, 1, 2, or 3).
+        DO NOT change the field names, they must be exactly as in the example below
         DO NOT use markdown.
         DO NOT use ```json
         Return a JSON object like:
@@ -56,6 +58,7 @@ class ExercisePromptBuilder:
         
         The sentence must test the meaning or usage of the word '{word}', not simply repeat the word itself.
         In the correct_option field, specify the index of the correct option (0, 1, 2, or 3).
+        DO NOT change the field names, they must be exactly as in the example below
         DO NOT use markdown.
         DO NOT use ```json
         Return a JSON object like:

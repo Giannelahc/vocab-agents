@@ -210,6 +210,8 @@ class PosTaggerPromptBuilder:
 
         Input: "take care of"
 
+        DO NOT change the field names, they must be exactly as in the example below
+
         {{
             "status": "valid",
             "types": ["verbal_expression"]

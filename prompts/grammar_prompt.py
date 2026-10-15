@@ -184,6 +184,7 @@ class GrammarPromptBuilder:
         - Use the standard/common grammatical usage of the target language.
         - Return all field names in English.
 
+        DO NOT change the field names, they must be exactly as in the example below
         DO NOT use markdown.
         DO NOT use ```json.
         Return ONLY valid JSON.

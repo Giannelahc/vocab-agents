@@ -228,6 +228,8 @@ class VocabularyIdentificationPromptBuilder:
 
         Return exactly:
 
+        DO NOT change the field names, they must be exactly as in the example below
+
         {{
             "candidates": [
                 {{
